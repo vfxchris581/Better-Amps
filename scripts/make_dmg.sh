@@ -65,10 +65,21 @@ chmod +x "$WORK/scripts/postinstall"
 
 # --- Component package: install exactly where we put things (no bundle relocation)
 pkgbuild --analyze --root "$PAYLOAD" "$WORK/components.plist"
-n=$(/usr/libexec/PlistBuddy -c "Print" "$WORK/components.plist" | grep -c "BundleIsRelocatable" || true)
-for ((i = 0; i < n; i++)); do
-    /usr/libexec/PlistBuddy -c "Set :$i:BundleIsRelocatable false" "$WORK/components.plist"
-done
+/usr/bin/python3 - "$WORK/components.plist" <<'PY'
+import plistlib, sys
+path = sys.argv[1]
+with open(path, "rb") as f:
+    items = plistlib.load(f)
+def fix(entries):
+    for e in entries:
+        e["BundleIsRelocatable"] = False
+        e["BundleIsVersionChecked"] = False   # always install the bundled version
+        fix(e.get("ChildBundles", []))
+fix(items)
+with open(path, "wb") as f:
+    plistlib.dump(items, f)
+print("bundles marked non-relocatable:", ", ".join(e.get("RootRelativeBundlePath", "?") for e in items))
+PY
 pkgbuild --root "$PAYLOAD" --component-plist "$WORK/components.plist" --scripts "$WORK/scripts" \
          --identifier "$IDENT.pkg" --version "$VERSION" --install-location / "$WORK/component.pkg"
 
