@@ -440,6 +440,25 @@ int main()
         check (names (reloaded.query (cat)) == "Fuzz Face", "category survives reload");
         check (! reloaded.find (recto->id)->includesCab(), "cab override survives reload");
         check (names (reloaded.recent()) == "Fuzz Face,Recto Lead", "recent survives reload");
+        const auto* cached = reloaded.find (recto->id);
+        check (cached != nullptr && cached->info.gearMake == "Mesa Boogie" && cached->info.kind == CaptureKind::AmpCab
+               && cached->info.hasLoudness && cached->info.architecture == "LSTM", "metadata restored from the index cache");
+
+        // A file changed on disk is re-read, not served from the cache.
+        {
+            std::ifstream in (cached->file);
+            std::string json ((std::istreambuf_iterator<char> (in)), std::istreambuf_iterator<char>());
+            in.close();
+            const auto at = json.find ("Recto Lead");
+            json.replace (at, 10, "Recto Lead Mk2 (edited)");
+            std::ofstream out (cached->file, std::ios::trunc);
+            out << json;
+        }
+        ModelLibrary third ((root / "lib").string());
+        third.load();
+        bool sawEdit = false;
+        for (auto* e : third.query ({})) if (e->info.name == "Recto Lead Mk2 (edited)") sawEdit = true;
+        check (sawEdit, "edited file re-read on load");
         fs::remove_all (root);
     });
 

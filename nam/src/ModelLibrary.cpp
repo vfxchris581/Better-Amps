@@ -55,6 +55,44 @@ fs::path fromUtf8 (const std::string& s)
     return fs::path (std::u8string (s.begin(), s.end()));
 }
 
+// File identity for the metadata cache: size and modification time.
+std::pair<std::uintmax_t, long long> fileStamp (const std::string& path)
+{
+    std::error_code ec;
+    const auto size = fs::file_size (fs::path (path), ec);
+    if (ec) return { 0, 0 };
+    const auto t = fs::last_write_time (fs::path (path), ec);
+    return { size, ec ? 0LL : static_cast<long long> (t.time_since_epoch().count()) };
+}
+
+nlohmann::json infoToJson (const ModelInfo& m)
+{
+    nlohmann::json j;
+    j["name"] = m.name; j["modeledBy"] = m.modeledBy; j["gearMake"] = m.gearMake; j["gearModel"] = m.gearModel;
+    j["gearType"] = m.gearType; j["toneType"] = m.toneType; j["architecture"] = m.architecture; j["version"] = m.version;
+    j["sampleRate"] = m.sampleRate; j["numInputs"] = m.numInputs; j["numOutputs"] = m.numOutputs;
+    if (m.hasLoudness) j["loudness"] = m.loudnessDb;
+    if (m.hasInputLevel) j["inputDbu"] = m.inputLevelDbu;
+    if (m.hasOutputLevel) j["outputDbu"] = m.outputLevelDbu;
+    return j;
+}
+
+void infoFromJson (const nlohmann::json& j, const std::string& path, ModelInfo& m)
+{
+    m.path = path;
+    m.name = j.value ("name", std::string()); m.modeledBy = j.value ("modeledBy", std::string());
+    m.gearMake = j.value ("gearMake", std::string()); m.gearModel = j.value ("gearModel", std::string());
+    m.gearType = j.value ("gearType", std::string()); m.toneType = j.value ("toneType", std::string());
+    m.architecture = j.value ("architecture", std::string()); m.version = j.value ("version", std::string());
+    m.sampleRate = j.value ("sampleRate", -1.0);
+    m.numInputs = j.value ("numInputs", 1); m.numOutputs = j.value ("numOutputs", 1);
+    m.hasLoudness = j.contains ("loudness");     m.loudnessDb = j.value ("loudness", 0.0);
+    m.hasInputLevel = j.contains ("inputDbu");   m.inputLevelDbu = j.value ("inputDbu", 0.0);
+    m.hasOutputLevel = j.contains ("outputDbu"); m.outputLevelDbu = j.value ("outputDbu", 0.0);
+    if (m.name.empty()) m.name = fs::path (path).stem().string();
+    m.kind = classify (m.gearType, m.name);
+}
+
 int cabModeToInt (CabMode m) { return static_cast<int> (m); }
 CabMode cabModeFromInt (int v) { return v == 1 ? CabMode::AmpOnly : (v == 2 ? CabMode::IncludesCab : CabMode::Auto); }
 } // namespace
@@ -142,9 +180,12 @@ const LibraryEntry* ModelLibrary::find (const std::string& id) const
 const LibraryEntry* ModelLibrary::findByPath (const std::string& path) const
 {
     if (path.empty()) return nullptr;
+    // Stored paths are canonical already, so one canonicalisation of the query is enough.
+    for (const auto& e : entries)
+        if (e.file == path || (! e.originalPath.empty() && e.originalPath == path)) return &e;
     const auto c = canonical (path);
     for (const auto& e : entries)
-        if (e.file == c || (! e.originalPath.empty() && canonical (e.originalPath) == c)) return &e;
+        if (e.file == c || (! e.originalPath.empty() && e.originalPath == c)) return &e;
     return nullptr;
 }
 
@@ -180,8 +221,17 @@ bool ModelLibrary::load()
                 e.cabMode = cabModeFromInt (j.value ("cabMode", 0));
                 e.addedAt = j.value ("added", std::int64_t { 0 });
                 e.lastUsedAt = j.value ("used", std::int64_t { 0 });
-                std::string err;
-                if (! fs::exists (fs::path (e.file)) || ! readInfo (e.file, e.info, err)) continue;
+                if (! fs::exists (fs::path (e.file))) continue;
+                const auto stamp = fileStamp (e.file);
+                if (j.contains ("info") && j.value ("size", std::uintmax_t { 0 }) == stamp.first && j.value ("mtime", 0LL) == stamp.second)
+                {
+                    infoFromJson (j["info"], e.file, e.info); // unchanged since indexed: no need to parse the model again
+                }
+                else
+                {
+                    std::string err;
+                    if (! readInfo (e.file, e.info, err)) continue;
+                }
                 if (findMutable (e.id) == nullptr) entries.push_back (std::move (e));
             }
         }
@@ -215,6 +265,10 @@ bool ModelLibrary::save() const
         if (e.cabMode != CabMode::Auto) j["cabMode"] = cabModeToInt (e.cabMode);
         j["added"] = e.addedAt;
         if (e.lastUsedAt != 0) j["used"] = e.lastUsedAt;
+        const auto stamp = fileStamp (e.file);
+        j["size"] = stamp.first;
+        j["mtime"] = stamp.second;
+        j["info"] = infoToJson (e.info);
         models.push_back (std::move (j));
     }
     nlohmann::json root;
