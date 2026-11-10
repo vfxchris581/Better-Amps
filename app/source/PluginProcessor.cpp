@@ -161,7 +161,7 @@ ViridianForgeProcessor::ViridianForgeProcessor()
     : AudioProcessor (BusesProperties()
                           .withInput ("Guitar In", juce::AudioChannelSet::stereo(), true)
                           .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
-      apvts (*this, nullptr, "ViridianForge", createLayout())
+      apvts (*this, nullptr, "VFXAamps", createLayout())
 {
     auto get = [this] (const juce::String& id)
     {
@@ -507,7 +507,7 @@ void ViridianForgeProcessor::processChunk (const float* in, float* outL, float* 
 juce::File ViridianForgeProcessor::getLibraryFolder (const juce::String& kind)
 {
     auto dir = juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
-                   .getChildFile ("Viridian Forge").getChildFile (kind);
+                   .getChildFile ("VFXAamps").getChildFile (kind);
     dir.createDirectory();
     return dir;
 }

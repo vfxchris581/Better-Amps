@@ -65,22 +65,22 @@ jobs:
 
       - name: Build DMG installer (macOS)
         if: runner.os == 'macOS'
-        run: scripts/make_dmg.sh build/app/ViridianForge_artefacts/Release build/dist
+        run: scripts/make_dmg.sh build/app/VFXAamps_artefacts/Release build/dist
 
       - name: Upload DMG installer
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: ViridianForge-macOS-DMG
+          name: VFXAamps-macOS-DMG
           path: build/dist/*.dmg
           if-no-files-found: error
 
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
-          name: ViridianForge-${{ matrix.name }}
+          name: VFXAamps-${{ matrix.name }}
           path: |
-            build/app/ViridianForge_artefacts/Release/VST3
-            build/app/ViridianForge_artefacts/Release/Standalone
-            build/app/ViridianForge_artefacts/Release/AU
+            build/app/VFXAamps_artefacts/Release/VST3
+            build/app/VFXAamps_artefacts/Release/Standalone
+            build/app/VFXAamps_artefacts/Release/AU
           if-no-files-found: warn

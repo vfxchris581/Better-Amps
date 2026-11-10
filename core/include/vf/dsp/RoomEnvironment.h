@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Room mics in an acoustic environment: studios of five sizes, everyday rooms,
 // reverb chambers and outdoor spaces.

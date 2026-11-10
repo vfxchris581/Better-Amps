@@ -1,4 +1,4 @@
-// Viridian Forge — shared parameter definitions.
+// VFXAamps — shared parameter definitions.
 // Single source of truth for parameter IDs, ranges and defaults, used by the
 // JUCE plugin (to build its parameter tree) and by the core tests.
 // IDs are part of saved sessions/presets: never rename or reuse an ID.

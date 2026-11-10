@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 // RBJ-cookbook biquads, transposed direct form II, mono state.
 #pragma once
 

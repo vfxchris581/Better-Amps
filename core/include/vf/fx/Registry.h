@@ -1,9 +1,9 @@
-// Viridian Forge — effect type registry.
+// VFXAamps — effect type registry.
 //
 // Every effect type has a stable string ID that is written into presets and
 // session state. IDs must never change once released; names may.
 // "Inspired by" lists the hardware whose character the original DSP aims at,
-// for description only - Viridian Forge is not affiliated with or endorsed by
+// for description only - VFXAamps is not affiliated with or endorsed by
 // any of those manufacturers, and no code or data was taken from them.
 #pragma once
 

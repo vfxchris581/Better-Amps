@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Streaming sample-rate converters for running a model at its own rate
 // (e.g. a NAM capture trained at 48 kHz inside a 44.1 kHz session).

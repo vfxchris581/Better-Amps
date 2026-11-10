@@ -1,4 +1,4 @@
-// Viridian Forge — real-time signal-graph engine (JUCE-independent).
+// VFXAamps — real-time signal-graph engine (JUCE-independent).
 //
 // Message thread: builds an immutable Plan (which blocks, in which order, in
 // which lane) and publish()es it. Audio thread: process() picks the newest plan

@@ -1,4 +1,4 @@
-// Viridian Forge — delay effects (incl. looper).
+// VFXAamps — delay effects (incl. looper).
 #pragma once
 
 #include "Effect.h"

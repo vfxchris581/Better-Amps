@@ -4,7 +4,7 @@
 #
 #   scripts/make_dmg.sh [artefacts-dir] [output-dir]
 #
-# artefacts-dir defaults to build/app/ViridianForge_artefacts/Release, output-dir to build/dist.
+# artefacts-dir defaults to build/app/VFXAamps_artefacts/Release, output-dir to build/dist.
 #
 # Signing: set MACOS_APP_SIGN_ID ("Developer ID Application: ...") and MACOS_PKG_SIGN_ID
 # ("Developer ID Installer: ...") to sign with your certificates; set MACOS_NOTARY_PROFILE
@@ -13,11 +13,11 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-ART="${1:-$ROOT/build/app/ViridianForge_artefacts/Release}"
+ART="${1:-$ROOT/build/app/VFXAamps_artefacts/Release}"
 OUT="${2:-$ROOT/build/dist}"
-PRODUCT="Viridian Forge"
-IDENT="com.viridianaudioworks.forge"
-VERSION="$(sed -n 's/^project(ViridianForge VERSION \([0-9.]*\).*/\1/p' "$ROOT/CMakeLists.txt")"
+PRODUCT="VFXAamps"
+IDENT="com.viridianaudioworks.vfxaamps"
+VERSION="$(sed -n 's/^project(VFXAamps VERSION \([0-9.]*\).*/\1/p' "$ROOT/CMakeLists.txt")"
 [ -n "$VERSION" ] || VERSION="0.0.0"
 
 APP="$ART/Standalone/$PRODUCT.app"

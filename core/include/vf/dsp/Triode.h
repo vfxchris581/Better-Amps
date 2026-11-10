@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Circuit-based triode gain stage.
 //

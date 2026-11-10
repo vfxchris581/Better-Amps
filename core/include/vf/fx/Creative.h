@@ -1,4 +1,4 @@
-// Viridian Forge — creative, filter-sequencing and utility effects.
+// VFXAamps — creative, filter-sequencing and utility effects.
 #pragma once
 
 #include "Effect.h"

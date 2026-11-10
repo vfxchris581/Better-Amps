@@ -1,4 +1,4 @@
-// Viridian Forge — effects framework (JUCE-independent).
+// VFXAamps — effects framework (JUCE-independent).
 //
 // Every effect is stereo, processes in place, and follows the real-time rules:
 // prepare() may allocate (it runs off the audio thread); reset(), setParam()

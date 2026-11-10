@@ -1,4 +1,4 @@
-// Viridian Forge — distortion, overdrive, fuzz and boost pedals.
+// VFXAamps — distortion, overdrive, fuzz and boost pedals.
 //
 // One engine, voiced per pedal by the circuit features that define its sound:
 // input pre-emphasis (high-pass), op-amp mid hump, clipping element (soft,

@@ -1,4 +1,4 @@
-// Viridian Forge — level-calibration table generator.
+// VFXAamps — level-calibration table generator.
 //
 // Every amp model/channel is level-matched at reference settings. Measuring
 // that takes a few seconds for the whole catalog, too slow for plugin load,

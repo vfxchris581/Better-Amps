@@ -3,14 +3,14 @@ if(APPLE AND VF_BUILD_AU)
     list(APPEND VF_FORMATS AU)
 endif()
 
-juce_add_plugin(ViridianForge
+juce_add_plugin(VFXAamps
     COMPANY_NAME                "Viridian Audio Works"
-    COMPANY_WEBSITE             "https://github.com/vfxchris581/new-app"
-    BUNDLE_ID                   "com.viridianaudioworks.forge"
-    PRODUCT_NAME                "Viridian Forge"
+    COMPANY_WEBSITE             "https://github.com/vfxchris581/better-amps"
+    BUNDLE_ID                   "com.viridianaudioworks.vfxaamps"
+    PRODUCT_NAME                "VFXAamps"
     VERSION                     ${PROJECT_VERSION}
-    PLUGIN_MANUFACTURER_CODE    Vrdn
-    PLUGIN_CODE                 VFg1
+    PLUGIN_MANUFACTURER_CODE    Vfxc
+    PLUGIN_CODE                 VFXa
     FORMATS                     ${VF_FORMATS}
     IS_SYNTH                    FALSE
     NEEDS_MIDI_INPUT            FALSE
@@ -18,22 +18,22 @@ juce_add_plugin(ViridianForge
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
     MICROPHONE_PERMISSION_ENABLED TRUE
-    MICROPHONE_PERMISSION_TEXT  "Viridian Forge needs audio input to process your guitar."
+    MICROPHONE_PERMISSION_TEXT  "VFXAamps needs audio input to process your guitar."
     VST3_CATEGORIES             Fx Distortion
     AU_MAIN_TYPE                kAudioUnitType_Effect
     ICON_BIG                    ${CMAKE_SOURCE_DIR}/resources/branding/icon_1024.png
     ICON_SMALL                  ${CMAKE_SOURCE_DIR}/resources/branding/icon_256.png
     COPY_PLUGIN_AFTER_BUILD     FALSE)
 
-juce_generate_juce_header(ViridianForge)
+juce_generate_juce_header(VFXAamps)
 
-juce_add_binary_data(ViridianForgeAssets
+juce_add_binary_data(VFXAampsAssets
     NAMESPACE VFAssets
     SOURCES
         ${CMAKE_SOURCE_DIR}/resources/branding/icon_256.png
         ${CMAKE_SOURCE_DIR}/resources/branding/logo_wordmark.png)
 
-target_sources(ViridianForge PRIVATE
+target_sources(VFXAamps PRIVATE
     source/PluginProcessor.cpp
     source/PluginEditor.cpp
     source/engine/AmpBlock.cpp
@@ -47,9 +47,9 @@ target_sources(ViridianForge PRIVATE
     source/ui/CabRoom.cpp
     source/ui/CabCube.cpp)
 
-target_include_directories(ViridianForge PRIVATE source)
+target_include_directories(VFXAamps PRIVATE source)
 
-target_compile_definitions(ViridianForge PUBLIC
+target_compile_definitions(VFXAamps PUBLIC
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
@@ -58,16 +58,16 @@ target_compile_definitions(ViridianForge PUBLIC
     JUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0)
 
 if(VF_WITH_NAM)
-    target_link_libraries(ViridianForge PRIVATE vf::nam)
-    target_compile_definitions(ViridianForge PRIVATE VF_WITH_NAM=1)
+    target_link_libraries(VFXAamps PRIVATE vf::nam)
+    target_compile_definitions(VFXAamps PRIVATE VF_WITH_NAM=1)
 else()
-    target_compile_definitions(ViridianForge PRIVATE VF_WITH_NAM=0)
+    target_compile_definitions(VFXAamps PRIVATE VF_WITH_NAM=0)
 endif()
 
-target_link_libraries(ViridianForge
+target_link_libraries(VFXAamps
     PRIVATE
         vf::core
-        ViridianForgeAssets
+        VFXAampsAssets
         juce::juce_audio_utils
         juce::juce_dsp
     PUBLIC

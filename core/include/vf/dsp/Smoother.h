@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 // Parameter smoothing. Real-time safe: no allocation, no locks.
 #pragma once
 

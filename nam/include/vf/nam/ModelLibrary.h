@@ -1,4 +1,4 @@
-// Viridian Forge — Neural Amp Model library.
+// VFXAamps — Neural Amp Model library.
 //
 // The user's collection of .nam captures: importing (single files, many files, whole
 // folders), an index with each capture's metadata, favourites, custom categories,

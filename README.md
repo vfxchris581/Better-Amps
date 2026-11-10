@@ -1,11 +1,11 @@
-<p align="center"><img src="resources/branding/icon_256.png" width="128" alt="Viridian Forge icon"></p>
+<p align="center"><img src="resources/branding/icon_256.png" width="128" alt="VFXAamps icon"></p>
 
-# Viridian Forge
+# VFXAamps
 
 **Guitar amp and effects modeling — standalone app and VST3/AU plugin for Windows, macOS and Linux.**
-By Viridian Audio Works.
+By Viridian Audio Works. Built on Viridian Forge ([new-app](https://github.com/vfxchris581/new-app)), as a separate plugin with its own IDs, so both can be installed side by side.
 
-![Viridian Forge: pedalboard with two amps and two cabs in parallel lanes](docs/images/ui-pedalboard.png)
+![VFXAamps: pedalboard with two amps and two cabs in parallel lanes](docs/images/ui-pedalboard.png)
 
 > **Status: Phase 4 of 7.** The app, plugin, interface, circuit-based amp engine with
 > **104 amp models**, Neural Amp Modeler support, impulse-response loading, the cabinet section,
@@ -100,21 +100,21 @@ NeuralAmpModelerCore v0.6.0 and Eigen 3.4.0 automatically. To use local copies i
 
 ```bash
 xcode-select --install          # once
-git clone https://github.com/vfxchris581/new-app.git && cd new-app
+git clone https://github.com/vfxchris581/better-amps.git && cd better-amps
 cmake -S . -B build -G Xcode    # or -G Ninja
 cmake --build build --config Release
 ctest --test-dir build -C Release
 ```
 
-Results in `build/app/ViridianForge_artefacts/Release/`:
-- `Standalone/Viridian Forge.app` → run it directly, or copy to `/Applications`
-- `VST3/Viridian Forge.vst3` → copy to `~/Library/Audio/Plug-Ins/VST3/`
-- `AU/Viridian Forge.component` → copy to `~/Library/Audio/Plug-Ins/Components/`
+Results in `build/app/VFXAamps_artefacts/Release/`:
+- `Standalone/VFXAamps.app` → run it directly, or copy to `/Applications`
+- `VST3/VFXAamps.vst3` → copy to `~/Library/Audio/Plug-Ins/VST3/`
+- `AU/VFXAamps.component` → copy to `~/Library/Audio/Plug-Ins/Components/`
 
 **DMG installer:** `scripts/make_dmg.sh` turns the Release build into
-`build/dist/Viridian-Forge-<version>-macOS.dmg`, containing an installer package that puts the app in
+`build/dist/VFXAamps-<version>-macOS.dmg`, containing an installer package that puts the app in
 `/Applications` and the VST3 and AU in `/Library/Audio/Plug-Ins`. CI builds this DMG on every macOS
-run (artifact **ViridianForge-macOS-DMG**). Without signing certificates it is ad-hoc signed, so
+run (artifact **VFXAamps-macOS-DMG**). Without signing certificates it is ad-hoc signed, so
 macOS asks for confirmation on first open (instructions are in the DMG's read-me); set
 `MACOS_APP_SIGN_ID`, `MACOS_PKG_SIGN_ID` and `MACOS_NOTARY_PROFILE` to sign and notarise.
 
@@ -124,16 +124,16 @@ right-click it and choose **Open** once.
 ### Windows (Visual Studio 2022, "Desktop development with C++")
 
 ```powershell
-git clone https://github.com/vfxchris581/new-app.git
-cd new-app
+git clone https://github.com/vfxchris581/better-amps.git
+cd better-amps
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
 ctest --test-dir build -C Release
 ```
 
-Results in `build\app\ViridianForge_artefacts\Release\`:
-- `Standalone\Viridian Forge.exe`
-- `VST3\Viridian Forge.vst3` → copy to `C:\Program Files\Common Files\VST3\`
+Results in `build\app\VFXAamps_artefacts\Release\`:
+- `Standalone\VFXAamps.exe`
+- `VST3\VFXAamps.vst3` → copy to `C:\Program Files\Common Files\VST3\`
 
 For lowest standalone latency on Windows, use your interface's ASIO driver (building JUCE with
 ASIO support requires the Steinberg ASIO SDK; WASAPI exclusive mode works without it).
@@ -144,15 +144,15 @@ ASIO support requires the Steinberg ASIO SDK; WASAPI exclusive mode works withou
 sudo apt install build-essential cmake ninja-build git libasound2-dev libjack-jackd2-dev \
   libfreetype-dev libfontconfig1-dev libx11-dev libxcomposite-dev libxcursor-dev libxext-dev \
   libxinerama-dev libxrandr-dev libxrender-dev libgl1-mesa-dev
-git clone https://github.com/vfxchris581/new-app.git && cd new-app
+git clone https://github.com/vfxchris581/better-amps.git && cd better-amps
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ctest --test-dir build
 ```
 
-Results in `build/app/ViridianForge_artefacts/Release/`:
-- `Standalone/Viridian Forge` → run it
-- `VST3/Viridian Forge.vst3` → copy to `~/.vst3/`
+Results in `build/app/VFXAamps_artefacts/Release/`:
+- `Standalone/VFXAamps` → run it
+- `VST3/VFXAamps.vst3` → copy to `~/.vst3/`
 
 ## Running the standalone app
 
@@ -163,8 +163,8 @@ Results in `build/app/ViridianForge_artefacts/Release/`:
 4. Tune with the tuner in the top bar, then play.
 5. NAM captures: switch **AMP SOURCE** to **Neural (NAM)** and click **BROWSE NAM** (or **LOAD**) to
    import and pick captures; imports are copied into your capture library. Impulse responses: choose **IR A** or **IR A + B** in the cabinet panel and
-   **LOAD** a WAV. Libraries live in your user application-data folder under `Viridian Forge/NAM`
-   and `Viridian Forge/IRs` (LOAD → *Show library folder* opens it).
+   **LOAD** a WAV. Libraries live in your user application-data folder under `VFXAamps/NAM`
+   and `VFXAamps/IRs` (LOAD → *Show library folder* opens it).
 
 Building only the DSP core and tests (no JUCE download): `cmake -S . -B build -DVF_BUILD_PLUGIN=OFF`.
 

@@ -1,4 +1,4 @@
-// Viridian Forge — NAM host implementation (compiled as C++20 with the NAM core).
+// VFXAamps — NAM host implementation (compiled as C++20 with the NAM core).
 
 #include "vf/nam/NamEngine.h"
 #include "vf/dsp/Resampler.h"

@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Chromatic tuner. The audio thread only pushes samples into a lock-free
 // single-producer/single-consumer FIFO; pitch detection (YIN) runs on a

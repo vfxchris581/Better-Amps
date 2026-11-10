@@ -1,4 +1,4 @@
-// Viridian Forge — core DSP tests (no external test framework needed).
+// VFXAamps — core DSP tests (no external test framework needed).
 // Run: ctest --test-dir build  (or ./build/tests/vf_core_tests)
 
 #include "vf/Parameters.h"

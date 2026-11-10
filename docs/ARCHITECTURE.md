@@ -1,6 +1,6 @@
-# Viridian Forge — Architecture, Plan and Roadmap
+# VFXAamps — Architecture, Plan and Roadmap
 
-Viridian Forge (by Viridian Audio Works) is a guitar amp and effects modeling
+VFXAamps (by Viridian Audio Works) is a guitar amp and effects modeling
 platform shipped as a standalone app and a VST3 plugin (plus AU on macOS) for
 Windows, macOS and Linux.
 
@@ -169,7 +169,7 @@ mode"), as on the real hardware.
   cab crossfades to bypass; otherwise it runs. A post-split cab is only
   bypassed when both lanes already carry a cab. Independent of Cab On.
 - **Library** (`vf/nam/ModelLibrary.h`, JUCE-free, unit-tested): lives in
-  `…/Viridian Forge/NAM`, index in `library.json` (written atomically).
+  `…/VFXAamps/NAM`, index in `library.json` (written atomically).
   Import copies files in and never touches originals; identical captures are
   recognised by content hash; files dropped into the folder by hand are
   indexed on the next rescan, deleted ones dropped. Favourites, categories,
@@ -196,8 +196,9 @@ mode"), as on the real hardware.
   **AUDIO** button opens device settings and the **LIVE INPUT** switch controls
   JUCE's feedback-protection mute (input is muted at first launch so laptop
   speakers don't howl).
-- Plugin identifiers: manufacturer `Vrdn`, plugin `VFg1`, bundle ID
-  `com.viridianaudioworks.forge`. These must never change after release.
+- Plugin identifiers: manufacturer `Vfxc`, plugin `VFXa`, bundle ID
+  `com.viridianaudioworks.vfxaamps` (distinct from Viridian Forge in new-app, so both can be
+  installed side by side). These must never change after release.
 
 ## 6. Licensing and compatibility limitations
 

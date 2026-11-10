@@ -1,4 +1,4 @@
-// Viridian Forge — DSP building blocks for effects (JUCE-independent).
+// VFXAamps — DSP building blocks for effects (JUCE-independent).
 #pragma once
 
 #include "../dsp/Biquad.h"

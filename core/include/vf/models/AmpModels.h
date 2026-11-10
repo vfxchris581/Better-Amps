@@ -1,4 +1,4 @@
-// Viridian Forge — amp model registry.
+// VFXAamps — amp model registry.
 //
 // Every amp is a *data description of its circuit*, evaluated by the shared
 // engine in AmpVoice: how many triode stages each channel has and how they

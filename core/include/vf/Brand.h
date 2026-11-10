@@ -1,13 +1,13 @@
-// Viridian Forge — brand constants shared by UI, About screen and installers.
+// VFXAamps — brand constants shared by UI, About screen and installers.
 #pragma once
 
 namespace vf::brand
 {
     inline constexpr const char* company     = "Viridian Audio Works";
-    inline constexpr const char* product     = "Viridian Forge";
+    inline constexpr const char* product     = "VFXAamps";
     inline constexpr const char* tagline     = "Hand-wired tone, forged in code.";
-    inline constexpr const char* website     = "https://github.com/vfxchris581/new-app";
-    inline constexpr const char* versionText = "0.4.5 (Phase 4 + Cab Lab)";
+    inline constexpr const char* website     = "https://github.com/vfxchris581/better-amps";
+    inline constexpr const char* versionText = "0.5.0 (Neural Amp Modeler loader)";
 
     // Signature palette, taken from the green guitar the icon is based on.
     inline constexpr unsigned int viridian      = 0xff1fc24a; // body green (matched to reference photo)

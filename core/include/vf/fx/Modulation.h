@@ -1,4 +1,4 @@
-// Viridian Forge — modulation effects.
+// VFXAamps — modulation effects.
 #pragma once
 
 #include "Effect.h"

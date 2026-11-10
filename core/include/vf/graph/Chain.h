@@ -1,4 +1,4 @@
-// Viridian Forge — signal-chain model (message thread; JUCE-independent).
+// VFXAamps — signal-chain model (message thread; JUCE-independent).
 //
 // The chain is:   PRE ──┬── LANE A ──┬── POST
 //                       └── LANE B ──┘          (lanes exist only when split)

@@ -1,4 +1,4 @@
-// Viridian Forge — UI snapshot + end-to-end smoke test (developer tool).
+// VFXAamps — UI snapshot + end-to-end smoke test (developer tool).
 //
 // Creates the real plugin processor and editor, applies a scenario, pushes
 // audio through processBlock (so NAM/IR loads complete and meters move), and

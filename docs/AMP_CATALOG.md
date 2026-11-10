@@ -1,7 +1,7 @@
 # Amp catalog
 
 Generated from `core/include/vf/models/AmpModels.h` (104 models). Every model is an original circuit
-description evaluated by the Viridian Forge engine. *Inspired by* names the tone that guided the voicing; those names are
+description evaluated by the VFXAamps engine. *Inspired by* names the tone that guided the voicing; those names are
 trademarks of their owners and no affiliation or endorsement is implied.
 
 187 channel voicings in total. Models marked **GEQ** have the 5-band graphic EQ.

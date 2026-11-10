@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Passive "FMV" (Fender/Marshall/Vox-family) tone stack.
 // Continuous-time transfer function after D. T. Yeh & J. O. Smith,

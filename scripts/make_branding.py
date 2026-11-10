@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate Viridian Forge branding assets (icon + wordmark) as SVG and PNG.
+"""Generate VFXAamps branding assets (icon + wordmark) as SVG and PNG.
 
 Usage:  python3 scripts/make_branding.py
 Needs:  rsvg-convert (librsvg) on PATH for the PNG exports.
@@ -131,9 +131,9 @@ def icon_svg():
 def wordmark_svg():
     return '''<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220">
   <text x="0" y="128" font-family="Inter, DejaVu Sans, sans-serif" font-weight="800" font-size="118"
-        letter-spacing="14" fill="#1fc24a">VIRIDIAN</text>
+        letter-spacing="14" fill="#1fc24a">VFXAAMPS</text>
   <text x="6" y="196" font-family="Inter, DejaVu Sans, sans-serif" font-weight="600" font-size="44"
-        letter-spacing="21" fill="#c9ccd1">FORGE · AMP STUDIO</text>
+        letter-spacing="15" fill="#c9ccd1">NEURAL · AMP STUDIO</text>
 </svg>'''
 
 

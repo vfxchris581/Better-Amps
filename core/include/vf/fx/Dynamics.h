@@ -1,4 +1,4 @@
-// Viridian Forge — dynamics, EQ/filters, pitch and utility effects.
+// VFXAamps — dynamics, EQ/filters, pitch and utility effects.
 #pragma once
 
 #include "Effect.h"

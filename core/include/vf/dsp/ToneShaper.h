@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Post-EQ used when the amp block runs a captured model (NAM). A capture is
 // a fixed snapshot of an amp, so the amp knobs are re-mapped to musically

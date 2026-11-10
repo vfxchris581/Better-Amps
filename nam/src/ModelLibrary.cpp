@@ -1,4 +1,4 @@
-// Viridian Forge — Neural Amp Model library (compiled with the NAM core for its JSON parser).
+// VFXAamps — Neural Amp Model library (compiled with the NAM core for its JSON parser).
 
 #include "vf/nam/ModelLibrary.h"
 

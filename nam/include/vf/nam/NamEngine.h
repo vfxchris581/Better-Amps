@@ -1,4 +1,4 @@
-// Viridian Forge — Neural Amp Modeler (NAM) host.
+// VFXAamps — Neural Amp Modeler (NAM) host.
 //
 // Wraps the official open-source NeuralAmpModelerCore (MIT) behind a small
 // C++17 interface so the rest of the app never includes NAM/Eigen headers.

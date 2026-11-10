@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Up to four-microphone cabinet capture. Each mic has its own position on a chosen
 // speaker (cone centre .. edge), distance from the grille, off-axis angle, type,

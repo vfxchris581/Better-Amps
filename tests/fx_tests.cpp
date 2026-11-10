@@ -1,4 +1,4 @@
-// Viridian Forge — effects tests: registry, safety, every parameter, distinctness,
+// VFXAamps — effects tests: registry, safety, every parameter, distinctness,
 // behaviour, real-time allocation discipline and CPU cost.
 
 #include "vf/fx/Registry.h"

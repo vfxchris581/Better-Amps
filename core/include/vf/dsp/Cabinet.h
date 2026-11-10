@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Parametric speaker cabinet + close-mic simulation (Phase 2 "basic cab").
 // Each cabinet is described by the features that define how a miked guitar

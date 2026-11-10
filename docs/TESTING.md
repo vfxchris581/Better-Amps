@@ -34,7 +34,7 @@ CI runs it on Windows, macOS and Linux.
 
 Plugin validation (from Phase 6, run locally now if you like):
 [pluginval](https://github.com/Tracktion/pluginval) at strictness 5+ against
-the built `Viridian Forge.vst3`.
+the built `VFXAamps.vst3`.
 
 End-to-end smoke test + screenshots (needs `-DVF_BUILD_SNAPSHOT_TOOL=ON`):
 `vf_snapshot chain out.png` builds a split two-amp chain with effects. It

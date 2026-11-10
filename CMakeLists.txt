@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(ViridianForge VERSION 0.4.5 LANGUAGES C CXX)
+project(VFXAamps VERSION 0.5.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

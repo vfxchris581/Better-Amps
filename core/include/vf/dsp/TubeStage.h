@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Power-amp model: push-pull output stage with tube-type profiles, supply sag,
 // negative-feedback-dependent presence/resonance, and a solid-state mode.

@@ -331,7 +331,7 @@ void AmpHeadPanel::paint (Graphics& g)
     g.setColour (t.accent);
     g.drawRoundedRectangle (badge.reduced (2.0f), 6.0f, 1.5f);
     g.setFont (ViridianLookAndFeel::labelFont (badge.getHeight() * 0.44f).withExtraKerningFactor (0.18f));
-    g.drawFittedText ("VIRIDIAN", badge.withTrimmedBottom (badge.getHeight() * 0.25f).toNearestInt(), Justification::centred, 1);
+    g.drawFittedText ("VFXAAMPS", badge.withTrimmedBottom (badge.getHeight() * 0.25f).toNearestInt(), Justification::centred, 1);
     g.setColour (Colour (vf::brand::brushedSteel));
     g.setFont (ViridianLookAndFeel::labelFont (badge.getHeight() * 0.16f).withExtraKerningFactor (0.2f));
     g.drawFittedText (badgeName2, badge.withTrimmedTop (badge.getHeight() * 0.6f).reduced (8.0f, 0.0f).toNearestInt(), Justification::centred, 1);
@@ -856,7 +856,7 @@ void SplashOverlay::paint (Graphics& g)
     auto textArea = Rectangle<float> (r.getX(), iconArea.getBottom() + s * 0.08f, r.getWidth(), s * 0.24f);
     g.setColour (Colour (vf::brand::viridian).withMultipliedAlpha (alpha));
     g.setFont (ViridianLookAndFeel::labelFont (s * 0.18f).withExtraKerningFactor (0.2f));
-    g.drawText ("VIRIDIAN FORGE", textArea, Justification::centred);
+    g.drawText ("VFXAAMPS", textArea, Justification::centred);
     g.setColour (Colours::white.withAlpha (0.6f * alpha));
     g.setFont (ViridianLookAndFeel::labelFont (s * 0.07f, false));
     g.drawText (String (vf::brand::tagline) + "   v" + vf::brand::versionText,
@@ -907,7 +907,7 @@ void AboutOverlay::paint (Graphics& g)
     head.removeFromLeft (18.0f);
     g.setColour (t.accent);
     g.setFont (ViridianLookAndFeel::labelFont (28.0f).withExtraKerningFactor (0.12f));
-    g.drawText ("VIRIDIAN FORGE", head.removeFromTop (44.0f), Justification::bottomLeft);
+    g.drawText ("VFXAAMPS", head.removeFromTop (44.0f), Justification::bottomLeft);
     g.setColour (t.text);
     g.setFont (ViridianLookAndFeel::labelFont (14.0f, false));
     g.drawText (String ("Version ") + vf::brand::versionText, head.removeFromTop (22.0f), Justification::centredLeft);

@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // AmpVoice: evaluates any amp model from the registry (vf/models/AmpModels.h).
 //

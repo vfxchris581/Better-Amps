@@ -1,4 +1,4 @@
-// Viridian Forge — NAM host tests, using the example models shipped with NeuralAmpModelerCore.
+// VFXAamps — NAM host tests, using the example models shipped with NeuralAmpModelerCore.
 
 #include "vf/nam/ModelLibrary.h"
 #include "vf/nam/NamEngine.h"

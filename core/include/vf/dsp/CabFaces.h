@@ -1,4 +1,4 @@
-// Viridian Forge — DSP core (JUCE-independent)
+// VFXAamps — DSP core (JUCE-independent)
 //
 // Geometry for the six-face cabinet view: the cabinet is a unit cube (x right, y up,
 // z towards the front). Each face has a 2D (u, v) space in [-0.5, 0.5]^2, a 3D point

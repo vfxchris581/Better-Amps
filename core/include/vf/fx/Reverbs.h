@@ -1,4 +1,4 @@
-// Viridian Forge — reverbs.
+// VFXAamps — reverbs.
 #pragma once
 
 #include "Effect.h"

@@ -1,4 +1,4 @@
-// Viridian Forge — amp dynamics measurement (developer tool).
+// VFXAamps — amp dynamics measurement (developer tool).
 //
 // Measures how an amp responds to playing, so models can be compared with
 // captures of real amps (NAM files):
