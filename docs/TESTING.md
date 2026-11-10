@@ -10,7 +10,7 @@ ctest --test-dir build --output-on-failure
 
 The core suite (`tests/core_tests.cpp`, 16,978 checks), the effects + signal
 graph suite (`tests/fx_tests.cpp`, 16,033 checks) and the NAM suite
-(`tests/nam_tests.cpp`, 112 checks) run under CTest.
+(`tests/nam_tests.cpp`, 114 checks) run under CTest.
 
 The effects suite checks every one of the 107 effects:
 - finite and bounded at every parameter extreme at three sample rates;

@@ -85,7 +85,7 @@ By Viridian Audio Works.
 - Chromatic tuner, input/output meters with clip LEDs, CPU and latency readouts.
 - Resizable UI with dark and light themes, splash and About screens.
 - Full session save/restore (including loaded NAM and IR files) and automation of every parameter.
-- Automated tests: 16,978 amp/cab DSP checks, 16,033 effect and signal-graph checks and 112 NAM
+- Automated tests: 16,978 amp/cab DSP checks, 16,033 effect and signal-graph checks and 114 NAM
   checks (loading, inference, calibration, normalisation, resampling, multi-channel captures,
   capture types and the model library), run by CI.
 

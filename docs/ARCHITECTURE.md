@@ -384,7 +384,7 @@ Verified:
     only on the message thread.
   - Real effects keep running in two lanes while another thread churns plans,
     with no audio-thread allocation.
-- **NAM tests: 112 checks** — every example model loads and plays, resampling
+- **NAM tests: 114 checks** — every example model loads and plays, resampling
   fidelity, click-free switching, invalid files, capture kinds, input
   calibration, normalisation as a pure gain, a 1-in/2-out model, mono through
   the stereo path, and the library (import, duplicates, folders, search, sorts,
