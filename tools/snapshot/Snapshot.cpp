@@ -5,7 +5,8 @@
 // renders the editor to a PNG. Exits non-zero if audio is silent or not finite.
 //
 //   vf_snapshot <scenario> <out.png> [nam-file] [ir-file]
-//   scenarios: default | mark | nam | ir | light | chain | fx | cab | cabrear
+//   scenarios: default | mark | nam | nambrowser | ir | light | chain | fx | cab | cabrear
+//   nambrowser: [nam-file] is a .nam file; every capture in its folder is imported into the library first.
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
@@ -83,9 +84,20 @@ int main (int argc, char* argv[])
         setParam (st, vf::ParamID::cabModel, static_cast<float> (vf::dsp::CabModel::V30_4x12));
         setParam (st, vf::ParamID::micType, 1.0f);
     }
-    else if (scenario == "nam")
+    else if (scenario == "nam" || scenario == "nambrowser")
     {
         setParam (st, vf::ParamID::ampSource, 1.0f);
+       #if VF_WITH_NAM
+        if (scenario == "nambrowser" && namPath.isNotEmpty())
+        {
+            auto& lib = ViridianForgeProcessor::namLibrary();
+            const auto report = lib.importFolder (juce::File (namPath).getParentDirectory().getFullPathName().toStdString(), false);
+            std::printf ("library: %d imported, %d duplicates, %d failed, %d total\n", (int) report.added.size(),
+                         (int) report.duplicates.size(), (int) report.failed.size(), (int) lib.size());
+            if (const auto* e = lib.findByPath (namPath.toStdString())) { lib.setFavorite (e->id, true); lib.setCategory (e->id, "Cleans"); }
+            ViridianForgeProcessor::saveNamLibrary();
+        }
+       #endif
         if (namPath.isNotEmpty()) proc.loadNamModel (juce::File (namPath));
     }
     else if (scenario == "ir")
@@ -206,6 +218,9 @@ int main (int argc, char* argv[])
             ed->selectBlock (selectKey);
             if (showRear) ed->showCabRear (true);
         }
+    if (scenario == "nambrowser")
+        if (auto* ed = dynamic_cast<ViridianForgeEditor*> (editor.get()))
+            ed->showNamBrowser ("Amp 1", juce::File (proc.getNamStatus().path), [&proc] (const juce::File& f) { proc.loadNamModel (f); });
     for (int i = 0; i < 15; ++i) // let editor timers update meters, tuner and file slots
     {
         runAudio (proc, 4, rms);
