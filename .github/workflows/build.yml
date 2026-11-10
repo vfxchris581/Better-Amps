@@ -21,7 +21,7 @@ jobs:
           for t in ${TARGETS//,/ }; do
             case "$t" in
               Linux)   e='{"name":"Linux","os":"ubuntu-24.04","generator":"Ninja"}' ;;
-              macOS)   e='{"name":"macOS","os":"macos-15","generator":"Ninja"}' ;;
+              macOS)   e='{"name":"macOS","os":"macos-15-intel","generator":"Ninja"}' ;;
               Windows) e='{"name":"Windows","os":"windows-2022","generator":"Visual Studio 17 2022"}' ;;
               *) echo "Unknown target: $t"; exit 1 ;;
             esac
