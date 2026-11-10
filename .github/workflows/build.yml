@@ -1,0 +1,74 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Which platforms to build comes from the repo variable BUILD_TARGETS (comma list of
+  # Linux, macOS, Windows). Unset means macOS and Windows.
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      targets: ${{ steps.pick.outputs.targets }}
+    steps:
+      - id: pick
+        env:
+          TARGETS: ${{ vars.BUILD_TARGETS || 'macOS' }}
+        run: |
+          json="["; sep=""
+          for t in ${TARGETS//,/ }; do
+            case "$t" in
+              Linux)   e='{"name":"Linux","os":"ubuntu-24.04","generator":"Ninja"}' ;;
+              macOS)   e='{"name":"macOS","os":"macos-15","generator":"Ninja"}' ;;
+              Windows) e='{"name":"Windows","os":"windows-2022","generator":"Visual Studio 17 2022"}' ;;
+              *) echo "Unknown target: $t"; exit 1 ;;
+            esac
+            json="$json$sep$e"; sep=","
+          done
+          echo "targets=$json]" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.targets) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libasound2-dev libjack-jackd2-dev \
+            libfreetype-dev libfontconfig1-dev libx11-dev libxcomposite-dev libxcursor-dev \
+            libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libgl1-mesa-dev
+
+      - name: Install Ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      - name: Configure
+        shell: bash
+        run: cmake -S . -B build -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Core tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: ViridianForge-${{ matrix.name }}
+          path: |
+            build/app/ViridianForge_artefacts/Release/VST3
+            build/app/ViridianForge_artefacts/Release/Standalone
+            build/app/ViridianForge_artefacts/Release/AU
+          if-no-files-found: warn
