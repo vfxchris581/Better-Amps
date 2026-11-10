@@ -111,6 +111,13 @@ Results in `build/app/ViridianForge_artefacts/Release/`:
 - `VST3/Viridian Forge.vst3` → copy to `~/Library/Audio/Plug-Ins/VST3/`
 - `AU/Viridian Forge.component` → copy to `~/Library/Audio/Plug-Ins/Components/`
 
+**DMG installer:** `scripts/make_dmg.sh` turns the Release build into
+`build/dist/Viridian-Forge-<version>-macOS.dmg`, containing an installer package that puts the app in
+`/Applications` and the VST3 and AU in `/Library/Audio/Plug-Ins`. CI builds this DMG on every macOS
+run (artifact **ViridianForge-macOS-DMG**). Without signing certificates it is ad-hoc signed, so
+macOS asks for confirmation on first open (instructions are in the DMG's read-me); set
+`MACOS_APP_SIGN_ID`, `MACOS_PKG_SIGN_ID` and `MACOS_NOTARY_PROFILE` to sign and notarise.
+
 Builds are universal (Apple Silicon + Intel). Local builds are unsigned: if macOS blocks the app,
 right-click it and choose **Open** once.
 

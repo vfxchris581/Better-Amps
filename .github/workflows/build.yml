@@ -63,6 +63,18 @@ jobs:
       - name: Core tests
         run: ctest --test-dir build -C Release --output-on-failure
 
+      - name: Build DMG installer (macOS)
+        if: runner.os == 'macOS'
+        run: scripts/make_dmg.sh build/app/ViridianForge_artefacts/Release build/dist
+
+      - name: Upload DMG installer
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ViridianForge-macOS-DMG
+          path: build/dist/*.dmg
+          if-no-files-found: error
+
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
