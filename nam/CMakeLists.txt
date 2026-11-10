@@ -7,7 +7,7 @@ file(GLOB VF_NAM_CORE_SOURCES CONFIGURE_DEPENDS
 
 # OBJECT library: NAM registers its architectures with static initializers, which a
 # static library would let the linker drop.
-add_library(vf_nam OBJECT src/NamEngine.cpp ${VF_NAM_CORE_SOURCES})
+add_library(vf_nam OBJECT src/NamEngine.cpp src/ModelLibrary.cpp ${VF_NAM_CORE_SOURCES})
 add_library(vf::nam ALIAS vf_nam)
 
 set_target_properties(vf_nam PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON POSITION_INDEPENDENT_CODE ON)
@@ -22,6 +22,6 @@ if(MSVC)
     target_compile_options(vf_nam PRIVATE /bigobj /W3)
     target_compile_definitions(vf_nam PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN _USE_MATH_DEFINES)
 else()
-    # Third-party code: keep our own warnings for NamEngine.cpp only.
+    # Third-party code: keep our own warnings for NamEngine.cpp / ModelLibrary.cpp only.
     set_source_files_properties(${VF_NAM_CORE_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
 endif()
