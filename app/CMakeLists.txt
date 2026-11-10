@@ -42,6 +42,7 @@ target_sources(ViridianForge PRIVATE
     source/ui/ViridianLookAndFeel.cpp
     source/ui/Widgets.cpp
     source/ui/Panels.cpp
+    source/ui/NamBrowser.cpp
     source/ui/Pedalboard.cpp
     source/ui/CabRoom.cpp
     source/ui/CabCube.cpp)

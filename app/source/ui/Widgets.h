@@ -39,6 +39,7 @@ class ChoiceBox : public juce::Component
 public:
     ChoiceBox (APVTS& state, const juce::String& paramId, const juce::String& label);
     void resized() override;
+    void setTooltip (const juce::String& text) { box.setTooltip (text); }
 
 private:
     juce::ComboBox box;
@@ -124,6 +125,8 @@ public:
     std::function<void()> onClear;
     std::function<juce::File()> getLibraryFolder;
     std::function<juce::File (const juce::File&)> importFile;
+    /** Optional: opens a full library browser (shown first in the LOAD menu). */
+    std::function<void()> onBrowse;
 
 private:
     void timerCallback() override;

@@ -8,9 +8,9 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-The core suite (`tests/core_tests.cpp`, 8,629 checks), the effects + signal
-graph suite (`tests/fx_tests.cpp`, 15,665 checks) and the NAM suite
-(`tests/nam_tests.cpp`, 37 checks) run under CTest.
+The core suite (`tests/core_tests.cpp`, 16,978 checks), the effects + signal
+graph suite (`tests/fx_tests.cpp`, 16,033 checks) and the NAM suite
+(`tests/nam_tests.cpp`, 112 checks) run under CTest.
 
 The effects suite checks every one of the 107 effects:
 - finite and bounded at every parameter extreme at three sample rates;
@@ -120,10 +120,19 @@ Use headphones for the standalone app.
 - [ ] Hard picking compresses and blooms; light picking is cleaner (touch sensitivity).
 - [ ] POWER TUBES: Stock and each swap sound different.
 
-**NAM**
-- [ ] AMP SOURCE → NAM; LOAD → Import a `.nam` file: the slot shows its name, gear and rate.
-- [ ] Playing through the capture sounds like the captured amp; switching captures while playing is click-free.
-- [ ] Gain drives the capture harder; EQ knobs are flat at 5; Master changes level.
+**NAM** (use at least three real captures: an amp-only capture, a full-rig / amp + cab capture, and a pedal or preamp capture)
+- [ ] AMP SOURCE → Neural (NAM); BROWSE NAM opens the browser. IMPORT FILES (pick several) and IMPORT FOLDER add them; the originals are unchanged; importing the same file again says "already in the library".
+- [ ] The info panel shows name, gear, type, gain, artist, architecture, sample rate (and whether it is resampled), input/output level, loudness, channels and file paths.
+- [ ] Search, every sort order (and column-header sorting), Favorites, Recent and a custom category all filter/sort as expected; settings survive closing and reopening the app.
+- [ ] EDIT INFO changes what the browser shows; REPLACE swaps the capture and keeps favourite/category; REMOVE deletes only the library copy.
+- [ ] Double-click / LOAD loads; playing sounds like the captured amp; switching captures while playing is click-free.
+- [ ] PURE on (default): Gain/EQ/Master are greyed out and do not change the sound; NAM In / NAM Out change level only. PURE off: Gain drives the capture harder; EQ knobs are flat at 5; Master changes level.
+- [ ] CALIBRATE: with Iface dBu set to your interface's spec, a capture with an input level sounds like it did when captured; captures without one are unaffected.
+- [ ] NORMALIZE off: captures play at their own level; on: all about the same loudness.
+- [ ] Full-rig capture with "Capture has: Auto": the note says the cab after it is bypassed, and the cab section no longer colours the sound. Amp-only capture: the cab runs. "Amp Only" / "Includes Cab" override both ways.
+- [ ] Two lanes (SPLIT), one full-rig capture and one amp-only capture, cab in POST: the cab still runs (the amp-only lane needs it).
+- [ ] NAM Loader block in the chain: LOAD .NAM opens the same browser; a stereo-output capture comes out stereo.
+- [ ] VST3 in a DAW on macOS and Windows: load, save and reopen a project with a capture and the NAM settings; automate NAM In.
 - [ ] Run the session at 44.1 kHz with a 48 kHz capture: it sounds the same (automatic resampling).
 - [ ] X unloads (dry signal passes through); saving and reopening the session reloads the capture.
 

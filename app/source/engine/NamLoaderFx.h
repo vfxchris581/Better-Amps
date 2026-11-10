@@ -29,10 +29,13 @@ public:
     void collectGarbage() { engine.collectGarbage(); }
     /** Removes the model (the block passes audio through). */
     void clear();
+    /** Message thread: what is loaded. */
+    bool hasModel() const { return engine.hasModel(); }
+    vf::nam::ModelInfo info() const { return engine.currentInfo(); }
 
 private:
     vf::nam::Engine engine;
-    std::vector<float> mono;
+    std::vector<float> mono, side;
     int pInput = -1, pLevel = -1, pTone = -1, pBass = -1, pMid = -1, pTreble = -1, pPresence = -1, pResonance = -1;
     vf::dsp::ToneShaper tone;   // optional tone section after the capture
 };

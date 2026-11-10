@@ -27,11 +27,28 @@ By Viridian Audio Works.
   and a neo-classical shred lead model. Full list: [docs/AMP_CATALOG.md](docs/AMP_CATALOG.md).
   Product names are trademarks of their owners and only describe the tones that guided these
   original models; no affiliation or endorsement is implied.
-- **Neural Amp Modeler:** load any mono `.nam` capture (WaveNet, LSTM, ConvNet, A2 and more via the
-  official NeuralAmpModelerCore v0.6.0). Background loading, click-free swapping, automatic
-  resampling when your session runs at a different rate than the capture, loudness normalisation,
-  and a capture library (import/browse). The amp knobs keep working: Gain drives the capture,
-  the EQ knobs shape it, Master sets its level.
+- **Neural Amp Modeler (NAM), built in:** two amp categories share the same cabinets, mics, rooms,
+  signal chain and session recall: **Native Circuit** models (the 104 above) and **Neural (NAM)**
+  captures you import. Runs in the standalone app and the VST3/AU plugin on macOS and Windows.
+  - Loads `.nam` files through the official **NeuralAmpModelerCore v0.6.0** (WaveNet, LSTM,
+    ConvNet, Linear, A2, slimmable and container models). No proprietary format.
+  - Amp, preamp, power-amp, pedal, pedal + amp and full-rig captures; captures with several
+    inputs or outputs (stereo-output captures stay stereo in the NAM Loader block).
+  - **PURE** mode (default): the capture runs exactly as recorded; only NAM In / NAM Out change
+    its level. Turn PURE off to drive and shape it with Gain, Boost, the EQ knobs and Master.
+  - **Input calibration** (as in the official NAM plugin): enter your interface's input level and
+    the capture sees the level the real amp saw. **Normalize** on/off for consistent loudness or
+    the capture's own level.
+  - **Cab handling:** captures that already contain a cab (from the file's gear type, its name, or
+    your setting) automatically bypass the app's cab after them, so a cab is never applied twice.
+    Amp-only captures go through the built-in cabs, mics and rooms, or your IRs, as normal.
+  - **NAM browser:** search; sort by name, manufacturer, amp type, gain, artist, recently used or
+    date added; favourites, recent, custom categories; import single files, many files or whole
+    folders (your originals are never changed); replace, remove, edit the shown details; full
+    model information (gear, type, gain, artist, architecture, sample rate and whether it will be
+    resampled, input/output calibration, loudness, channels, file locations).
+  - Background loading, click-free switching, automatic resampling when the session rate differs
+    from the capture's, and up to 10 capture profiles per amp.
 
   ![NAM mode](docs/images/ui-nam.png)
 - **Cab Lab (cabinets and mics):** **35 cabinets**. That is 20 4x12s and 12 2x12s, heavy on
@@ -68,8 +85,9 @@ By Viridian Audio Works.
 - Chromatic tuner, input/output meters with clip LEDs, CPU and latency readouts.
 - Resizable UI with dark and light themes, splash and About screens.
 - Full session save/restore (including loaded NAM and IR files) and automation of every parameter.
-- Automated tests: 8,629 amp/cab DSP checks, 15,665 effect and signal-graph checks and 37 NAM
-  checks, run on all three OSes by CI.
+- Automated tests: 16,978 amp/cab DSP checks, 16,033 effect and signal-graph checks and 112 NAM
+  checks (loading, inference, calibration, normalisation, resampling, multi-channel captures,
+  capture types and the model library), run by CI.
 
 ## Build
 
@@ -136,8 +154,8 @@ Results in `build/app/ViridianForge_artefacts/Release/`:
    64–256 samples.
 3. Click **INPUT MUTED** to switch to **LIVE INPUT** (input starts muted to prevent speaker feedback).
 4. Tune with the tuner in the top bar, then play.
-5. NAM captures: switch **AMP SOURCE** to **NAM** and use **LOAD** (Import copies the file into your
-   capture library). Impulse responses: choose **IR A** or **IR A + B** in the cabinet panel and
+5. NAM captures: switch **AMP SOURCE** to **Neural (NAM)** and click **BROWSE NAM** (or **LOAD**) to
+   import and pick captures; imports are copied into your capture library. Impulse responses: choose **IR A** or **IR A + B** in the cabinet panel and
    **LOAD** a WAV. Libraries live in your user application-data folder under `Viridian Forge/NAM`
    and `Viridian Forge/IRs` (LOAD → *Show library folder* opens it).
 
@@ -148,7 +166,7 @@ Building only the DSP core and tests (no JUCE download): `cmake -S . -B build -D
 | Path | Contents |
 |---|---|
 | `core/` | JUCE-free DSP core (amp engine, 104-model registry, cab/mic/room, 107 effects, signal-graph engine, resampler, tuner, parameters) |
-| `nam/` | Neural Amp Modeler host (C++20, wraps NeuralAmpModelerCore) |
+| `nam/` | Neural Amp Modeler host and model library (C++20, wraps NeuralAmpModelerCore) |
 | `app/` | JUCE processor, editor and UI components |
 | `tests/` | Core, effects/graph and NAM unit tests (CTest) |
 | `tools/` | Level-calibration generator, effects-catalog generator, half-band filter designer, UI snapshot / smoke-test tool |
@@ -157,6 +175,9 @@ Building only the DSP core and tests (no JUCE download): `cmake -S . -B build -D
 | `docs/` | Architecture & roadmap, amp and effects catalogs, testing checklist |
 
 ## Licensing note
+
+Third-party components and their licences (NeuralAmpModelerCore MIT, Eigen MPL 2.0, JUCE) are
+listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); the About screen credits them too.
 
 No license has been chosen yet. JUCE 8 is available under AGPLv3 or a commercial licence, so the
 license for this project depends on how you plan to release it (see

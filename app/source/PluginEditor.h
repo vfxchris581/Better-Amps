@@ -5,6 +5,7 @@
 #include "ui/Panels.h"
 #include "ui/Pedalboard.h"
 #include "ui/CabRoom.h"
+#include "ui/NamBrowser.h"
 #include "ui/ViridianLookAndFeel.h"
 
 class ViridianForgeEditor : public juce::AudioProcessorEditor,
@@ -24,6 +25,9 @@ public:
     void selectBlock (int key) { pedalboard.select (key); }
     Pedalboard& getPedalboard() noexcept { return pedalboard; }
     void showCabRear (bool rear) { cabRoom1.setView (rear); cabRoom2.setView (rear); }
+
+    /** Opens the Neural Amp Models browser; `onPick` gets the chosen capture. */
+    void showNamBrowser (const juce::String& targetName, const juce::File& currentFile, std::function<void (const juce::File&)> onPick);
 
 private:
     void timerCallback() override;
@@ -45,6 +49,9 @@ private:
     CabRoomView cabRoom1, cabRoom2;
     Pedalboard pedalboard;
     AboutOverlay about;
+   #if VF_WITH_NAM
+    NamBrowser namBrowser;
+   #endif
     std::unique_ptr<SplashOverlay> splash;
 
     juce::Value themeValue;

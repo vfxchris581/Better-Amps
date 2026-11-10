@@ -23,6 +23,7 @@ void NamLoaderFx::prepare (double sampleRate, int maxBlockSize)
     fs = sampleRate;
     maxBlock = maxBlockSize;
     mono.assign (static_cast<size_t> (maxBlockSize), 0.0f);
+    side.assign (static_cast<size_t> (maxBlockSize), 0.0f);
     engine.prepare (sampleRate, maxBlockSize);
     tone.prepare (sampleRate);
 }
@@ -45,12 +46,14 @@ void NamLoaderFx::process (float* l, float* r, int n) noexcept
         const int m = std::min (maxBlock, n - start);
         for (int i = 0; i < m; ++i)
             mono[static_cast<size_t> (i)] = gIn * 0.5f * (l[start + i] + r[start + i]);
-        engine.process (mono.data(), m);
+        // Mono in; a capture with two outputs keeps its stereo image.
+        engine.processStereo (mono.data(), mono.data(), side.data(), m, vf::nam::ProcessOptions {});
         for (int i = 0; i < m; ++i)
         {
-            float x = mono[static_cast<size_t> (i)];
-            if (toneOn) x = tone.process (x);
-            l[start + i] = r[start + i] = x * g;
+            float a = mono[static_cast<size_t> (i)], b = side[static_cast<size_t> (i)];
+            if (toneOn) { const float mid = 0.5f * (a + b), d = a - mid; const float t = tone.process (mid); a = t + d; b = t - d; }
+            l[start + i] = a * g;
+            r[start + i] = b * g;
         }
     }
 }

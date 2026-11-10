@@ -41,12 +41,24 @@ public:
     void restoreFromState (juce::ThreadPool& loader);
     void housekeeping();
 
+    /** Message thread. True when the amp is set to its NAM source and a capture is loaded. */
+    bool isRunningCapture() const;
+   #if VF_WITH_NAM
+    /** Message thread. Metadata of the loaded (or loading) capture. */
+    vf::nam::ModelInfo namInfo() const { return nam.currentInfo(); }
+   #endif
+    /** "NAM Capture Contains": 0 Auto, 1 Amp Only, 2 Includes Cab. */
+    int namCabMode() const noexcept;
+
 private:
     struct Settings
     {
         vf::dsp::AmpSettings amp;
-        bool nam = false;
+        bool nam = false, namPure = true;
         float namDriveDb = 0.0f, namLevelDb = 0.0f;
+       #if VF_WITH_NAM
+        vf::nam::ProcessOptions namOptions;
+       #endif
         vf::dsp::ToneShaperSettings tone;
     };
     void loadNamFile (const juce::File& file, juce::ThreadPool& loader);
@@ -59,7 +71,8 @@ private:
     struct Raw
     {
         std::atomic<float>* ampModel, *channel, *boost, *gain, *bass, *middle, *treble, *presence, *resonance, *master,
-            *bright, *deep, *tubeSwap, *ampSource, *geqOn, *geq[5];
+            *bright, *deep, *tubeSwap, *ampSource, *geqOn, *geq[5],
+            *namPure, *namInput, *namOutput, *namCalibrate, *namIfaceLevel, *namNormalize, *namCabMode;
     } raw {};
 
     static constexpr int oversamplingFactorLog2 = 2;

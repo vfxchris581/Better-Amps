@@ -143,6 +143,45 @@ struct ChainModel
         split = on;
     }
 
+    /** The blocks that run before `key`, one list per signal path into it (in order).
+        PRE and lane blocks have one path; a POST block with the split on has two (through lane A
+        and through lane B). Empty if `key` is not in the chain. */
+    std::vector<std::vector<int>> pathsInto (int key) const
+    {
+        const Position p = find (key);
+        if (! p.valid()) return {};
+        auto upTo = [] (const std::vector<int>& l, int n) { return std::vector<int> (l.begin(), l.begin() + n); };
+        auto join = [] (std::vector<int> a, const std::vector<int>& b) { a.insert (a.end(), b.begin(), b.end()); return a; };
+        switch (p.section)
+        {
+            case Section::Pre:   return { upTo (pre, p.index) };
+            case Section::LaneA: return { join (pre, upTo (laneA, p.index)) };
+            case Section::LaneB: return { join (pre, upTo (laneB, p.index)) };
+            case Section::Post:
+            default:
+            {
+                const auto tail = upTo (post, p.index);
+                if (! split) return { join (pre, tail) };
+                return { join (join (pre, laneA), tail), join (join (pre, laneB), tail) };
+            }
+        }
+    }
+
+    /** True when every signal path into `key` already went through a block for which `test` is true. */
+    template <typename Pred>
+    bool everyPathHas (int key, Pred&& test) const
+    {
+        const auto paths = pathsInto (key);
+        if (paths.empty()) return false;
+        for (const auto& path : paths)
+        {
+            bool found = false;
+            for (int k : path) if (test (k)) { found = true; break; }
+            if (! found) return false;
+        }
+        return true;
+    }
+
     std::vector<int> allKeys() const
     {
         std::vector<int> k (pre);

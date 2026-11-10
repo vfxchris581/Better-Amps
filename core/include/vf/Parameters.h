@@ -116,13 +116,22 @@ namespace ParamID
     inline constexpr const char* micAFace      = "micAFace";
     inline constexpr const char* micBFace      = "micBFace";
     inline constexpr const char* roomEnv       = "roomEnv";
+    // Neural Amp Models (per amp)
+    inline constexpr const char* namPure       = "namPure";
+    inline constexpr const char* namInput      = "namInput";
+    inline constexpr const char* namOutput     = "namOutput";
+    inline constexpr const char* namCalibrate  = "namCalibrate";
+    inline constexpr const char* namIfaceLevel = "namIfaceLevel";
+    inline constexpr const char* namNormalize  = "namNormalize";
+    inline constexpr const char* namCabMode    = "namCabMode";
 
     inline constexpr std::array<const char*, 5> geqBands { geq80, geq240, geq750, geq2200, geq6600 };
 }
 
 inline constexpr std::array<const char*, 3> channelNames   { "Channel 1", "Channel 2", "Channel 3" };
 inline constexpr std::array<const char*, 8> tubeSwapNames  { "Stock", "EL34", "6L6", "EL84", "6550", "KT88", "6V6", "5881" };
-inline constexpr std::array<const char*, 2> ampSourceNames { "Model", "NAM" };
+inline constexpr std::array<const char*, 2> ampSourceNames { "Native Circuit", "Neural (NAM)" };
+inline constexpr std::array<const char*, 3> namCabModeNames { "Auto", "Amp Only", "Includes Cab" };
 inline constexpr std::array<const char*, 3> cabSourceNames { "Built-in", "IR A", "IR A + B" };
 inline constexpr std::array<const char*, 4> speakerNames   { "Speaker 1", "Speaker 2", "Speaker 3", "Speaker 4" };
 inline constexpr std::array<const char*, 6> micFaceNames   { "Front", "Back", "Top", "Bottom", "Left", "Right" };
@@ -139,7 +148,7 @@ inline constexpr float defaultCabModel = static_cast<float> (dsp::CabModel::Gree
 /** Speaker slot choices: 0 = the cab's own voice, 1..13 = Speaker_1..Speaker_13. */
 inline constexpr float lastSlotSpeaker = static_cast<float> (dsp::CabModel::count) - static_cast<float> (dsp::CabModel::Speaker_1);
 
-inline constexpr std::array<ParamSpec, 82> parameterSpecs {{
+inline constexpr std::array<ParamSpec, 89> parameterSpecs {{
     { ParamID::inputGain,     "Input",          ParamKind::Float,  -24.0f, 24.0f,  0.0f,  0.1f, "dB", 1 },
     { ParamID::gateEnabled,   "Gate On",        ParamKind::Bool,     0.0f,  1.0f,  1.0f,  1.0f, "",   1 },
     { ParamID::gateThreshold, "Gate Threshold", ParamKind::Float,  -96.0f, -20.0f, -70.0f, 0.1f, "dB", 1 },
@@ -222,6 +231,15 @@ inline constexpr std::array<ParamSpec, 82> parameterSpecs {{
     { ParamID::slotSpeaker2,  "Speaker 2 Voice", ParamKind::Choice,  0.0f, lastSlotSpeaker, 0.0f, 1.0f, "", 4 },
     { ParamID::slotSpeaker3,  "Speaker 3 Voice", ParamKind::Choice,  0.0f, lastSlotSpeaker, 0.0f, 1.0f, "", 4 },
     { ParamID::slotSpeaker4,  "Speaker 4 Voice", ParamKind::Choice,  0.0f, lastSlotSpeaker, 0.0f, 1.0f, "", 4 },
+    // Neural Amp Models. Pure: the capture runs untouched (only the NAM input/output levels apply);
+    // off: the amp's Gain/EQ/Boost/Master shape it as before.
+    { ParamID::namPure,       "NAM Pure",            ParamKind::Bool,   0.0f,  1.0f,  1.0f, 1.0f,  "",    6 },
+    { ParamID::namInput,      "NAM Input",           ParamKind::Float, -24.0f, 24.0f, 0.0f, 0.1f,  "dB",  6 },
+    { ParamID::namOutput,     "NAM Output",          ParamKind::Float, -24.0f, 24.0f, 0.0f, 0.1f,  "dB",  6 },
+    { ParamID::namCalibrate,  "NAM Input Calibration", ParamKind::Bool, 0.0f,  1.0f,  0.0f, 1.0f,  "",    6 },
+    { ParamID::namIfaceLevel, "Interface Input Level", ParamKind::Float, -10.0f, 30.0f, 12.2f, 0.1f, "dBu", 6 },
+    { ParamID::namNormalize,  "NAM Normalize",       ParamKind::Bool,   0.0f,  1.0f,  1.0f, 1.0f,  "",    6 },
+    { ParamID::namCabMode,    "NAM Capture Contains", ParamKind::Choice, 0.0f, 2.0f,  0.0f, 1.0f,  "",    6 },
 }};
 
 //==============================================================================
@@ -229,11 +247,13 @@ inline constexpr std::array<ParamSpec, 82> parameterSpecs {{
 
 /** Parameters owned by an amp block. Amp 1 uses these IDs as-is (compatible with
     earlier sessions); Amp 2 uses them prefixed with "amp2_". */
-inline constexpr std::array<const char*, 20> ampParamIds {
+inline constexpr std::array<const char*, 27> ampParamIds {
     ParamID::ampModel, ParamID::channel, ParamID::boost, ParamID::gain, ParamID::bass, ParamID::middle,
     ParamID::treble, ParamID::presence, ParamID::resonance, ParamID::master, ParamID::bright, ParamID::deep,
     ParamID::tubeSwap, ParamID::ampSource, ParamID::geqOn, ParamID::geq80, ParamID::geq240, ParamID::geq750,
-    ParamID::geq2200, ParamID::geq6600 };
+    ParamID::geq2200, ParamID::geq6600,
+    ParamID::namPure, ParamID::namInput, ParamID::namOutput, ParamID::namCalibrate, ParamID::namIfaceLevel,
+    ParamID::namNormalize, ParamID::namCabMode };
 
 /** Parameters owned by a cab block; Cab 2 uses them prefixed with "cab2_". */
 inline constexpr std::array<const char*, 58> cabParamIds {

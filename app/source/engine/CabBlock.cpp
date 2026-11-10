@@ -125,7 +125,7 @@ void CabBlock::prepare (double sampleRate, int maxBlockSize)
     lastLowCut = lastHighCut = -1.0f;
 
     cabMix.reset (sampleRate, 0.02);
-    cabMix.setCurrentAndTargetValue (raw.cabOn->load() > 0.5f ? 1.0f : 0.0f);
+    cabMix.setCurrentAndTargetValue (raw.cabOn->load() > 0.5f && ! bypassedByCapture.load() ? 1.0f : 0.0f);
     irBlend.reset (sampleRate, 0.03);
     irBlend.setCurrentAndTargetValue (raw.irBlend->load() / 10.0f);
     roomAmount.reset (sampleRate, 0.05);
@@ -148,7 +148,7 @@ void CabBlock::process (float* l, float* r, int n) noexcept
     if (! prepared) return;
 
     updateMics();
-    cabMix.setTargetValue (raw.cabOn->load() > 0.5f ? 1.0f : 0.0f);
+    cabMix.setTargetValue (raw.cabOn->load() > 0.5f && ! bypassedByCapture.load() ? 1.0f : 0.0f);
     irBlend.setTargetValue (raw.irBlend->load() / 10.0f);
     roomAmount.setTargetValue (volumeKnobToGain (raw.room->load()));
     cabSwitch.target = sourceFromParams();

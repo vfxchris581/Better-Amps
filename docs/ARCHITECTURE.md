@@ -147,12 +147,39 @@ mode"), as on the real hardware.
   (and the model can't adapt), audio is streamed through cubic resamplers and
   a primed FIFO (~10 samples latency); measured tone at 44.1/96 kHz matches
   48 kHz within 0.01 dB.
-- **Loudness:** output is normalised to -18 dB from the capture's metadata.
-- **Controls:** Gain drives the capture (-12…+18 dB), Bass/Middle/Treble/
-  Presence/Resonance/Bright/Deep become a post-EQ (flat at 5), Master sets
-  the level, Boost works as a front-end boost.
-- **Library:** `…/Viridian Forge/NAM` (import, browse, reveal). The loaded
-  file path is stored in the session and reloaded on recall.
+- **Levels** (`ProcessOptions`, read on the audio thread): input calibration
+  (`interface dBu - capture input_level_dbu`, the official plugin's
+  convention), output normalisation to -18 dB loudness (on/off), and trims.
+  Normalisation is a pure gain, verified sample by sample in the tests.
+- **Channels:** N-input / M-output captures. The input is fed to every model
+  input; outputs become two lanes (even / odd). The amp path is mono and
+  averages them; the NAM Loader block keeps a stereo capture stereo.
+- **Capture kinds** from `gear_type` (amp, preamp, pedal, pedal_amp, amp_cab,
+  amp_pedal_cab, studio), or from the name when it is missing ("full rig",
+  "with cab", "power amp", "preamp"...). Cab-bearing kinds report `includesCab`.
+- **Amp block controls:** PURE (default) runs the capture untouched apart from
+  NAM In / NAM Out. With PURE off, Gain drives the capture (-12…+18 dB),
+  Bass/Middle/Treble/Presence/Resonance/Bright/Deep become a post-EQ (flat at 5),
+  Master sets the level and Boost is a front-end boost. Calibrate, interface
+  level, Normalize and "Capture has" (Auto / Amp Only / Includes Cab) are
+  per-amp, automatable, and saved with the session.
+- **Cab double-colouring guard:** every 100 ms the processor checks, for each
+  cab, every signal path into it (`ChainModel::pathsInto`). If every path has
+  already gone through a cab-bearing capture (amp or NAM Loader block), the
+  cab crossfades to bypass; otherwise it runs. A post-split cab is only
+  bypassed when both lanes already carry a cab. Independent of Cab On.
+- **Library** (`vf/nam/ModelLibrary.h`, JUCE-free, unit-tested): lives in
+  `…/Viridian Forge/NAM`, index in `library.json` (written atomically).
+  Import copies files in and never touches originals; identical captures are
+  recognised by content hash; files dropped into the folder by hand are
+  indexed on the next rescan, deleted ones dropped. Favourites, categories,
+  per-entry overrides (name, manufacturer, artist, amp type, gain, cab), recent,
+  search, seven sort orders, replace, remove (library copy only). One instance
+  per process, message thread only.
+- **Browser** (`app/source/ui/NamBrowser.*`): the NAM section of the amp
+  browser, opened from BROWSE NAM, the capture slot's LOAD menu or a NAM
+  Loader block. The loaded file path is stored in the session and reloaded on
+  recall.
 
 ## 5. VST3 and standalone architecture
 
@@ -326,7 +353,7 @@ quality bars (every model distinct, every effect production-grade) dominate.
 
 Verified:
 
-- **Core tests: 8,629 checks.** Covered: every tone stack passive, 12AX7
+- **Core tests: 16,978 checks.** Covered: every tone stack passive, 12AX7
   operating points, grid bias shift and recovery, and every model/channel
   bounded at extremes. Gain sweeps take every tube channel from cleaner to
   dirtier, and clean-headroom amps respond with level. Level matching is within
@@ -335,7 +362,7 @@ Verified:
   list), graphic EQ, click-free model switching, cabinets, mic types, room,
   resampler, post-EQ, gate, tuner, parameters and calibration-table freshness
   are also checked.
-- **Effects + graph tests: 15,665 checks.**
+- **Effects + graph tests: 16,033 checks.**
   - Registry: at least 100 types, unique IDs and names, valid metadata, and
     every category populated.
   - Every effect is finite and bounded at defaults and at every parameter
@@ -357,7 +384,12 @@ Verified:
     only on the message thread.
   - Real effects keep running in two lanes while another thread churns plans,
     with no audio-thread allocation.
-- **NAM tests: 37 checks** (unchanged).
+- **NAM tests: 112 checks** — every example model loads and plays, resampling
+  fidelity, click-free switching, invalid files, capture kinds, input
+  calibration, normalisation as a pure gain, a 1-in/2-out model, mono through
+  the stereo path, and the library (import, duplicates, folders, search, sorts,
+  favourites, categories, recent, overrides, persistence, replace, remove,
+  rescan). Clean under Valgrind.
 - All suites are clean under AddressSanitizer + UndefinedBehaviorSanitizer.
   The effects/graph suite is also clean under ThreadSanitizer.
 - **End-to-end smoke test** (`tools/snapshot`). It runs the real plugin

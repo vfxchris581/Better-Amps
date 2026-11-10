@@ -75,7 +75,7 @@ private:
 /** The large amplifier head with all front-panel controls. The grille carries the
     amp-source switch (modeled / NAM), the NAM capture slot, and the 5-band graphic
     EQ on models that have one. */
-class AmpHeadPanel : public juce::Component
+class AmpHeadPanel : public juce::Component, private juce::Timer
 {
 public:
     AmpHeadPanel (APVTS& state, ViridianForgeProcessor& processor, int ampIndex = 0);
@@ -83,6 +83,9 @@ public:
     void resized() override;
 
 private:
+    void timerCallback() override;          // NAM status line (cab bypass, calibration)
+    void openNamBrowser();
+    ViridianForgeProcessor& proc;
     juce::Rectangle<float> faceplateArea() const;
     juce::Rectangle<float> grilleArea() const;
     void modelChanged (int index);
@@ -98,6 +101,14 @@ private:
     juce::OwnedArray<LabeledFader> geq;
     FileSlot namSlot { "NAM CAPTURE", "NAM", "*.nam" };
     std::unique_ptr<NamProfileBar> namProfiles;
+    // Neural (NAM) controls, shown in place of the native amp's model/channel row
+    LedSwitch namPure, namCalibrate, namNormalize;
+    LabeledKnob namInput, namOutput, namIfaceLevel;
+    ChoiceBox namCabMode;
+    juce::TextButton namBrowseButton { "BROWSE NAM" };
+    juce::Label namNote;
+    std::unique_ptr<juce::ParameterAttachment> pureWatch, calWatch;
+    bool namPureOn = true, namCalOn = false;
     std::unique_ptr<juce::ParameterAttachment> sourceWatch;
     juce::String badgeName, badgeCategory;
     bool namMode = false, hasGeq = false;

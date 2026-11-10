@@ -1,4 +1,5 @@
 #include "Panels.h"
+#include "../PluginEditor.h"
 #include "vf/Brand.h"
 #include "vf/Parameters.h"
 #include <BinaryData.h>
@@ -90,7 +91,7 @@ void TopBar::resized()
 
 //==============================================================================
 AmpHeadPanel::AmpHeadPanel (APVTS& s, ViridianForgeProcessor& processor, int ampIndex)
-    : state (s), index (ampIndex),
+    : proc (processor), state (s), index (ampIndex),
       channel (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::channel),
       source (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::ampSource),
       gain (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::gain, "Gain"),
@@ -105,13 +106,35 @@ AmpHeadPanel::AmpHeadPanel (APVTS& s, ViridianForgeProcessor& processor, int amp
       boost (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::boost, "Boost"),
       geqOn (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::geqOn, "GEQ"),
       model (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::ampModel),
-      tubeSwap (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::tubeSwap, "Power tubes")
+      tubeSwap (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::tubeSwap, "Power tubes"),
+      namPure (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::namPure, "Pure"),
+      namCalibrate (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::namCalibrate, "Calibrate"),
+      namNormalize (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::namNormalize, "Normalize"),
+      namInput (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::namInput, "NAM In"),
+      namOutput (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::namOutput, "NAM Out"),
+      namIfaceLevel (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::namIfaceLevel, "Iface dBu"),
+      namCabMode (s, ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::namCabMode, "Capture has")
 {
     for (auto* c : std::initializer_list<Component*> { &channel, &source, &gain, &bass, &middle, &treble, &presence, &resonance, &master,
                                                        &bright, &deep, &boost, &model, &tubeSwap })
         addAndMakeVisible (c);
     addChildComponent (geqOn);
     addChildComponent (namSlot);
+    for (auto* c : std::initializer_list<Component*> { &namPure, &namCalibrate, &namNormalize, &namInput, &namOutput, &namIfaceLevel,
+                                                       &namCabMode, &namBrowseButton, &namNote })
+        addChildComponent (c);
+    namPure.getButton().setTooltip ("PURE: the capture runs exactly as recorded; only NAM In / NAM Out change its level. "
+                        "Off: Gain, Boost, the EQ knobs and Master shape the capture like an amp.");
+    namCalibrate.getButton().setTooltip ("Input calibration: set Iface dBu to your interface's input level at 0 dBFS (see its spec sheet) "
+                             "and the capture sees the same signal level as the real amp did when it was captured.");
+    namNormalize.getButton().setTooltip ("Normalize: bring every capture to the same loudness (-18 dB) so switching does not jump in level. "
+                             "Off: the capture's own output level.");
+    namCabMode.setTooltip ("Whether the capture already contains a cabinet. Auto reads the file (and your library setting). "
+                           "When it does, the cab after this amp is bypassed so it is not applied twice.");
+    namBrowseButton.setTooltip ("Open the Neural Amp Models browser: search, sort, favourites, categories, import, model info");
+    namBrowseButton.onClick = [this] { openNamBrowser(); };
+    namNote.setFont (ViridianLookAndFeel::labelFont (10.5f, false));
+    namNote.setJustificationType (Justification::centredLeft);
     namProfiles = std::make_unique<NamProfileBar> (ampNamBackend (processor, ampIndex), processor.getState().state);
     addChildComponent (*namProfiles);
     namProfiles->onStyleChanged = [this] { resized(); };
@@ -129,6 +152,7 @@ AmpHeadPanel::AmpHeadPanel (APVTS& s, ViridianForgeProcessor& processor, int amp
     namSlot.onClear = [&processor, ampIndex] { processor.unloadNamModel (ampIndex); };
     namSlot.getLibraryFolder = [] { return ViridianForgeProcessor::getLibraryFolder ("NAM"); };
     namSlot.importFile = [] (const File& f) { return ViridianForgeProcessor::importIntoLibrary (f, "NAM"); };
+    namSlot.onBrowse = [this] { openNamBrowser(); };
 
     if (! ViridianForgeProcessor::isNamAvailable())
     {
@@ -151,7 +175,45 @@ AmpHeadPanel::AmpHeadPanel (APVTS& s, ViridianForgeProcessor& processor, int amp
         updateMode();
     });
     sourceWatch->sendInitialUpdate();
+    pureWatch = std::make_unique<ParameterAttachment> (*s.getParameter (ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::namPure),
+                                                       [this] (float v) { namPureOn = v > 0.5f; updateMode(); });
+    calWatch = std::make_unique<ParameterAttachment> (*s.getParameter (ViridianForgeProcessor::ampPrefix (ampIndex) + vf::ParamID::namCalibrate),
+                                                      [this] (float v) { namCalOn = v > 0.5f; updateMode(); });
+    pureWatch->sendInitialUpdate();
+    calWatch->sendInitialUpdate();
     modelChanged (model.getModel());
+    startTimerHz (4);
+}
+
+void AmpHeadPanel::openNamBrowser()
+{
+    auto* editor = findParentComponentOfClass<ViridianForgeEditor>();
+    if (editor == nullptr) return;
+    const int amp = index;
+    auto& p = proc;
+    editor->showNamBrowser (index == 0 ? "Amp 1" : "Amp 2", File (p.getNamStatus (amp).path),
+                            [&p, amp] (const File& f) { p.loadNamModel (f, amp); });
+}
+
+void AmpHeadPanel::timerCallback()
+{
+    if (! namMode) return;
+    const auto t = themeOf (*this);
+    String note;
+    Colour colour = t.textDim;
+    if (proc.ampCaptureIncludesCab (index))
+    {
+        note = "Capture includes a cab: ";
+        const bool c1 = proc.isCabBypassedByCapture (0), c2 = proc.isCabBypassedByCapture (1);
+        note += (c1 || c2) ? String ("the cab after it is bypassed") : String ("no cab runs after it");
+        colour = t.accent;
+    }
+    else if (proc.getNamStatus (index).state == LoadState::Ready)
+    {
+        note = "Amp-only capture: the cab after it runs as normal";
+    }
+    if (namNote.getText() != note) namNote.setText (note, dontSendNotification);
+    namNote.setColour (Label::textColourId, colour);
 }
 
 void AmpHeadPanel::modelChanged (int modelIndex)
@@ -169,17 +231,27 @@ void AmpHeadPanel::modelChanged (int modelIndex)
 
 void AmpHeadPanel::updateMode()
 {
-    for (auto* c : std::initializer_list<Component*> { &channel, &model, &tubeSwap })
+    // Native circuit controls hide in Neural mode; the NAM controls take their place.
+    for (auto* c : std::initializer_list<Component*> { &channel, &model, &tubeSwap, &bright, &deep })
+        c->setVisible (! namMode);
+    for (auto* c : std::initializer_list<Component*> { &namPure, &namCalibrate, &namNormalize, &namInput, &namOutput, &namIfaceLevel,
+                                                       &namCabMode, &namBrowseButton, &namNote })
+        c->setVisible (namMode);
+    // Pure: the amp-style knobs do not touch the capture.
+    const bool shaping = ! namMode || ! namPureOn;
+    for (auto* c : std::initializer_list<Component*> { &gain, &bass, &middle, &treble, &presence, &resonance, &master, &boost, &bright, &deep })
     {
-        c->setEnabled (! namMode);
-        c->setAlpha (namMode ? 0.35f : 1.0f);
+        c->setEnabled (shaping);
+        c->setAlpha (shaping ? 1.0f : 0.35f);
     }
+    namIfaceLevel.setEnabled (namCalOn);
+    namIfaceLevel.setAlpha (namCalOn ? 1.0f : 0.4f);
     const bool showGeq = hasGeq && ! namMode;
     geqOn.setVisible (showGeq);
     for (auto* f : geq) f->setVisible (showGeq);
     namSlot.setVisible (namMode);
     if (namProfiles) { namProfiles->setVisible (namMode); namProfiles->refresh(); }
-    gain.getSlider().setTooltip (namMode ? "Drive into the NAM capture" : "Gain (double-click to reset)");
+    gain.getSlider().setTooltip (namMode ? (namPureOn ? "Off in PURE mode (use NAM In)" : "Drive into the NAM capture") : "Gain (double-click to reset)");
     master.getSlider().setTooltip (namMode ? "Output level after the NAM capture" : "Master: power-amp drive (double-click to reset)");
     resized();
     repaint();
@@ -506,6 +578,7 @@ void AmpHeadPanel::resized()
             if (namProfiles) namProfiles->setBounds (slotArea.removeFromBottom (26).reduced (0, 2));
             namSlot.setBounds (slotArea.withSizeKeepingCentre (slotArea.getWidth(), jmin (64, slotArea.getHeight())));
         }
+        namNote.setBounds (namSlot.getX(), namSlot.getBottom() + 2, namSlot.getWidth(), 16);
     }
     else if (hasGeq)
     {
@@ -518,8 +591,28 @@ void AmpHeadPanel::resized()
     auto plate = faceplateArea().toNearestInt().reduced (getWidth() / 60, getHeight() / 40);
 
     // Top row of the faceplate: channel switch, switches, model and tube selectors
+    // (Neural mode: PURE / CALIBRATE / NORMALIZE, interface level, "capture has" and the browser)
     auto top = plate.removeFromTop (plate.getHeight() * 30 / 100);
     top.removeFromTop (14);
+    if (namMode)
+    {
+        const int sw = jmin (78, top.getWidth() / 9);
+        namPure.setBounds (top.removeFromLeft (sw));
+        namCalibrate.setBounds (top.removeFromLeft (sw + 10));
+        namIfaceLevel.setBounds (top.removeFromLeft (jmin (70, top.getWidth() / 8)).withTrimmedTop (-14));
+        namNormalize.setBounds (top.removeFromLeft (sw + 10));
+        boost.setBounds (top.removeFromLeft (sw));
+        top.removeFromLeft (8);
+        namBrowseButton.setBounds (top.removeFromRight (jmin (130, top.getWidth() / 4)).withSizeKeepingCentre (jmin (130, top.getWidth() / 4), 28));
+        top.removeFromRight (8);
+        namCabMode.setBounds (top.reduced (4, 0));
+
+        plate.removeFromTop (6);
+        Component* knobs[] = { &namInput, &gain, &bass, &middle, &treble, &presence, &resonance, &master, &namOutput };
+        const int kw = plate.getWidth() / 9;
+        for (auto* k : knobs) k->setBounds (plate.removeFromLeft (kw).reduced (kw / 14, 0));
+        return;
+    }
     channel.setBounds (top.removeFromLeft (top.getWidth() * 34 / 100));
     top.removeFromLeft (12);
     const int sw = jmin (70, top.getWidth() / 8);
@@ -794,7 +887,7 @@ AboutOverlay::AboutOverlay()
 
 Rectangle<int> AboutOverlay::card() const
 {
-    return getLocalBounds().withSizeKeepingCentre (jmin (560, getWidth() - 40), jmin (440, getHeight() - 40));
+    return getLocalBounds().withSizeKeepingCentre (jmin (580, getWidth() - 40), jmin (500, getHeight() - 40));
 }
 
 void AboutOverlay::paint (Graphics& g)
@@ -829,13 +922,15 @@ void AboutOverlay::paint (Graphics& g)
 #endif
         ".\n\n"
         "Built with JUCE (juce.com). VST is a registered trademark of Steinberg Media Technologies GmbH.\n\n"
+        "Neural Amp Modeler support uses NeuralAmpModelerCore, Copyright (c) 2023 Steven Atkinson, MIT License, "
+        "and Eigen (MPL 2.0). NAM captures belong to their creators; this product ships none.\n\n"
         "All amp, effect, speaker and microphone model names referenced by this product are trademarks of their "
         "respective owners, used only to describe the tones that inspired our original DSP models. Their use does not "
         "imply any affiliation with or endorsement by those owners.\n\n"
         "Icon artwork inspired by the founder's green dual-humbucker guitar.";
     g.setColour (t.text);
     g.setFont (ViridianLookAndFeel::labelFont (12.5f, false));
-    g.drawFittedText (legal, r.withTrimmedBottom (40.0f).toNearestInt(), Justification::topLeft, 16);
+    g.drawFittedText (legal, r.withTrimmedBottom (40.0f).toNearestInt(), Justification::topLeft, 24);
 }
 
 void AboutOverlay::resized()

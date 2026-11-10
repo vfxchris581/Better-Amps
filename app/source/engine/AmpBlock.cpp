@@ -16,6 +16,10 @@ AmpBlock::AmpBlock (juce::AudioProcessorValueTreeState& state, const juce::Strin
     raw.master = get (ParamID::master);       raw.bright = get (ParamID::bright);       raw.deep = get (ParamID::deep);
     raw.tubeSwap = get (ParamID::tubeSwap);   raw.ampSource = get (ParamID::ampSource); raw.geqOn = get (ParamID::geqOn);
     for (size_t b = 0; b < 5; ++b) raw.geq[b] = get (ParamID::geqBands[b]);
+    raw.namPure = get (ParamID::namPure);           raw.namInput = get (ParamID::namInput);
+    raw.namOutput = get (ParamID::namOutput);       raw.namCalibrate = get (ParamID::namCalibrate);
+    raw.namIfaceLevel = get (ParamID::namIfaceLevel); raw.namNormalize = get (ParamID::namNormalize);
+    raw.namCabMode = get (ParamID::namCabMode);
 }
 
 AmpBlock::~AmpBlock()
@@ -47,9 +51,19 @@ void AmpBlock::readSettings (Settings& s) const noexcept
    #else
     s.nam = false;
    #endif
-    s.namDriveDb = -12.0f + 3.0f * a.gain;   // Gain 0..10 -> -12..+18 dB into the capture
-    s.namLevelDb = -18.0f + 3.0f * a.master; // Master 0..10 -> -18..+12 dB after it
+    // Pure: only the NAM input/output levels touch the capture. Otherwise the amp knobs shape it too:
+    // Gain 0..10 -> -12..+18 dB into the capture, Master 0..10 -> -18..+12 dB after it, EQ after it.
+    s.namPure = raw.namPure->load() > 0.5f;
+    const float inTrim = raw.namInput->load(), outTrim = raw.namOutput->load();
+    s.namDriveDb = s.namPure ? inTrim : inTrim - 12.0f + 3.0f * a.gain;
+    s.namLevelDb = s.namPure ? outTrim : outTrim - 18.0f + 3.0f * a.master;
     s.tone = { a.bass, a.middle, a.treble, a.presence, a.resonance, a.bright, a.deep };
+   #if VF_WITH_NAM
+    s.namOptions.calibrateInput = raw.namCalibrate->load() > 0.5f;
+    s.namOptions.interfaceInputDbu = raw.namIfaceLevel->load();
+    s.namOptions.normalizeOutput = raw.namNormalize->load() > 0.5f;
+    s.namOptions.inputTrimDb = s.namOptions.outputTrimDb = 0.0f; // trims are smoothed here (namDrive / namLevel)
+   #endif
 }
 
 void AmpBlock::prepare (double sampleRate, int maxBlockSize)
@@ -117,15 +131,18 @@ void AmpBlock::processMono (float* x, int n, const Settings& s) noexcept
     if (ampSwitch.active == 1)
     {
        #if VF_WITH_NAM
+        const bool shape = ! s.namPure;
         for (int i = 0; i < n; ++i)
         {
             float v = x[i];
-            if (s.amp.boost) v = namBoostHigh.process (namBoostLow.process (v)) * 3.5f + v * 0.3f;
+            if (shape && s.amp.boost) v = namBoostHigh.process (namBoostLow.process (v)) * 3.5f + v * 0.3f;
             x[i] = v * namDrive.getNextValue();
         }
-        nam.process (x, n);
-        for (int i = 0; i < n; ++i)
-            x[i] = namTone.process (x[i]) * namLevel.getNextValue();
+        nam.process (x, n, s.namOptions);
+        if (shape)
+            for (int i = 0; i < n; ++i) x[i] = namTone.process (x[i]) * namLevel.getNextValue();
+        else
+            for (int i = 0; i < n; ++i) x[i] *= namLevel.getNextValue();
        #endif
     }
     else
@@ -232,6 +249,20 @@ void AmpBlock::restoreFromState (juce::ThreadPool& loader)
     const auto path = apvts.state.getProperty (namKey).toString();
     if (path.isNotEmpty()) loadNamFile (juce::File (path), loader);
     else if (getNamStatus().state != LoadState::Empty) unloadNamModel();
+}
+
+bool AmpBlock::isRunningCapture() const
+{
+   #if VF_WITH_NAM
+    return juce::roundToInt (raw.ampSource->load()) == 1 && nam.hasModel();
+   #else
+    return false;
+   #endif
+}
+
+int AmpBlock::namCabMode() const noexcept
+{
+    return juce::jlimit (0, 2, juce::roundToInt (raw.namCabMode->load()));
 }
 
 void AmpBlock::housekeeping()

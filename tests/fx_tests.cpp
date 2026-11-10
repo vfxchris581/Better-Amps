@@ -781,6 +781,33 @@ int main()
         for (int k = 0; k < kNumKeys; ++k) check (keyFromName (keyName (k)) == k, "key name round trip " + keyName (k));
     });
 
+    test ("chain model: signal paths into a block (cab double-colouring guard)", [&]
+    {
+        using namespace vf::graph;
+        auto m = ChainModel::defaultChain(); // amp1, cab1
+        auto has = [] (int key) { return [key] (int k) { return k == key; }; };
+        check (m.pathsInto (kCab1).size() == 1 && m.pathsInto (kCab1)[0] == std::vector<int> ({ kAmp1 }), "series: amp before cab");
+        check (m.everyPathHas (kCab1, has (kAmp1)), "cab after a cab-bearing capture is guarded");
+        check (! m.everyPathHas (kAmp1, has (kAmp1)), "nothing runs before the first block");
+        check (m.pathsInto (kCab2).empty() && ! m.everyPathHas (kCab2, has (kAmp1)), "a block not in the chain has no paths");
+
+        // Cab before amp: the cab is not after the capture.
+        m.insert (kCab1, Section::Pre, 0);
+        check (! m.everyPathHas (kCab1, has (kAmp1)), "cab placed before the amp is left alone");
+
+        // Two lanes merging into a post cab: guarded only if both lanes already have a cab.
+        ChainModel p;
+        p.setSplit (true);
+        p.insert (kAmp1, Section::LaneA, 0);
+        p.insert (kAmp2, Section::LaneB, 0);
+        p.insert (kCab1, Section::Post, 0);
+        check (p.pathsInto (kCab1).size() == 2, "post block has one path per lane");
+        check (! p.everyPathHas (kCab1, has (kAmp1)), "one lane with a cab-bearing capture: other lane still needs the cab");
+        check (p.everyPathHas (kCab1, [] (int k) { return k == kAmp1 || k == kAmp2; }), "both lanes: cab bypassed");
+        p.insert (kCab2, Section::LaneB, 1);
+        check (p.everyPathHas (kCab2, has (kAmp2)) && ! p.everyPathHas (kCab2, has (kAmp1)), "lane cab sees only its own lane");
+    });
+
     test ("graph: serial order, Y split + merge levels/pan, L/R split, latency compensation", [&]
     {
         std::array<std::shared_ptr<Effect>, kNumKeys> blocks {};

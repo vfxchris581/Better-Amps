@@ -9,6 +9,10 @@
 #include "engine/AmpBlock.h"
 #include "engine/CabBlock.h"
 
+#if VF_WITH_NAM
+ #include "vf/nam/ModelLibrary.h"
+#endif
+
 /** Audio processor shared by the Standalone app, VST3 and AU builds.
 
     Signal flow:
@@ -129,7 +133,20 @@ public:
     FileSlotStatus getIrStatus (int slot, int cab = 0) const;
 
     static juce::File getLibraryFolder (const juce::String& kind); // "NAM" or "IRs"
+    /** Copies a file into a library (NAM captures are also indexed). The original is never modified. */
     static juce::File importIntoLibrary (const juce::File& source, const juce::String& kind);
+
+   #if VF_WITH_NAM
+    /** The Neural Amp Model library, shared by every instance in this process. Message thread only. */
+    static vf::nam::ModelLibrary& namLibrary();
+    /** Message thread: saves the library index (after edits made through namLibrary()). */
+    static void saveNamLibrary();
+   #endif
+
+    /** Message thread. True when a cab is bypassed because the capture feeding it already has a cabinet. */
+    bool isCabBypassedByCapture (int cab) const { return cabs[juce::jlimit (0, 1, cab)]->isBypassedByCapture(); }
+    /** Message thread. Whether the capture an amp is running contains a cab (after the user's override). */
+    bool ampCaptureIncludesCab (int amp) const;
 
     /** Message thread: frees retired plans/NAM models (also runs on an internal timer). */
     void housekeeping();
@@ -145,7 +162,9 @@ public:
 
 private:
     juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
-    void timerCallback() override { housekeeping(); }
+    void timerCallback() override { housekeeping(); updateCabGuards(); }
+    void updateCabGuards();               // bypass cabs whose every input path already went through a cab-bearing capture
+    bool blockHasCabCapture (int key) const;
 
     std::shared_ptr<vf::fx::Effect> createSlotEffect (int slot, int typeIndex);
     void setSlotParamsToDefaults (int slot, int typeIndex);

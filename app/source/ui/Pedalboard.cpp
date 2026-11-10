@@ -1,4 +1,5 @@
 #include "Pedalboard.h"
+#include "../PluginEditor.h"
 #include "Panels.h"
 #include "vf/Parameters.h"
 
@@ -699,6 +700,16 @@ void EffectEditor::changeListenerCallback (ChangeBroadcaster*)
 
 void EffectEditor::chooseNamFile()
 {
+   #if VF_WITH_NAM
+    if (auto* editor = findParentComponentOfClass<ViridianForgeEditor>())
+    {
+        auto& p = processor;
+        const int s = slot;
+        editor->showNamBrowser ("FX " + juce::String (slot + 1) + " - NAM Loader", juce::File (p.slotNamPath (slot)),
+                                [&p, s] (const juce::File& f) { p.loadSlotNamFile (s, f); });
+        return;
+    }
+   #endif
     namChooser = std::make_unique<juce::FileChooser> ("Choose a NAM capture", juce::File(), "*.nam");
     SafePointer<EffectEditor> safeThis (this);
     namChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,

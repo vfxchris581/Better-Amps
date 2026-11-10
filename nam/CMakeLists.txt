@@ -15,7 +15,7 @@ target_include_directories(vf_nam
     PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/include
     PRIVATE ${VF_NAM_DIR} ${VF_NAM_DIR}/NAM ${VF_NAM_DIR}/Dependencies/nlohmann)
 target_include_directories(vf_nam SYSTEM PRIVATE ${VF_EIGEN_DIR})
-target_compile_definitions(vf_nam PRIVATE NAM_SAMPLE_FLOAT NAM_ENABLE_A2_FAST)
+target_compile_definitions(vf_nam PRIVATE NAM_SAMPLE_FLOAT NAM_ENABLE_A2_FAST EIGEN_MPL2_ONLY)
 target_link_libraries(vf_nam PUBLIC vf::core)
 
 if(MSVC)

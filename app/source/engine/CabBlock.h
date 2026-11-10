@@ -29,7 +29,13 @@ public:
     FileSlotStatus getIrStatus (int slot) const;
     void restoreFromState();
 
+    /** Bypasses the cab (click-free) because the capture feeding it already contains a cabinet.
+        Set from the message thread; independent of the user's Cab On switch. */
+    void setBypassedByCapture (bool b) noexcept { bypassedByCapture.store (b); }
+    bool isBypassedByCapture() const noexcept { return bypassedByCapture.load(); }
+
 private:
+    std::atomic<bool> bypassedByCapture { false };
     void processChunk (float* l, float* r, int n) noexcept;
 
     juce::AudioProcessorValueTreeState& apvts;

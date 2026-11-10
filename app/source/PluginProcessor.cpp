@@ -4,6 +4,8 @@
 #include "engine/NamLoaderFx.h"
 #endif
 
+static void noteNamUsed (const juce::File& file); // records a capture as recently used in the library
+
 using namespace vf;
 using vf::graph::kNumFxSlots;
 
@@ -36,6 +38,7 @@ void addSpec (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const
             else if (base == ParamID::cabModel)  choices = toStringArray (vf::dsp::cabModelNames);
             else if (base == ParamID::micType)   choices = toStringArray (vf::dsp::micTypeNames);
             else if (base == ParamID::ampSource) choices = toStringArray (ampSourceNames);
+            else if (base == ParamID::namCabMode) choices = toStringArray (namCabModeNames);
             else if (base == ParamID::cabSource) choices = toStringArray (cabSourceNames);
             else if (base == ParamID::micBType || base == ParamID::micCType || base == ParamID::micDType)
                 choices = toStringArray (vf::dsp::micTypeNames);
@@ -509,8 +512,43 @@ juce::File ViridianForgeProcessor::getLibraryFolder (const juce::String& kind)
     return dir;
 }
 
+#if VF_WITH_NAM
+namespace
+{
+struct NamLibraryHolder
+{
+    NamLibraryHolder() : library (ViridianForgeProcessor::getLibraryFolder ("NAM").getFullPathName().toStdString()) { library.load(); }
+    vf::nam::ModelLibrary library;
+};
+}
+
+vf::nam::ModelLibrary& ViridianForgeProcessor::namLibrary()
+{
+    // One library per process, created on first use (message thread), shared by every instance.
+    static NamLibraryHolder holder;
+    return holder.library;
+}
+
+void ViridianForgeProcessor::saveNamLibrary()
+{
+    namLibrary().save();
+}
+#endif
+
 juce::File ViridianForgeProcessor::importIntoLibrary (const juce::File& source, const juce::String& kind)
 {
+   #if VF_WITH_NAM
+    if (kind == "NAM")
+    {
+        auto& lib = namLibrary();
+        const auto report = lib.importFile (source.getFullPathName().toStdString());
+        const auto& ids = ! report.added.empty() ? report.added : report.duplicates;
+        if (ids.empty()) return source; // not a valid capture: let the loader report why
+        lib.save();
+        if (const auto* e = lib.find (ids.front())) return juce::File (juce::String (e->file));
+        return source;
+    }
+   #endif
     auto dest = getLibraryFolder (kind).getChildFile (source.getFileName());
     if (dest == source) return source;
     if (dest.existsAsFile()) dest = dest.getNonexistentSibling();
@@ -519,6 +557,7 @@ juce::File ViridianForgeProcessor::importIntoLibrary (const juce::File& source, 
 
 void ViridianForgeProcessor::loadSlotNamFile (int slot, const juce::File& file)
 {
+    noteNamUsed (file);
     apvts.state.removeProperty (juce::Identifier ("slotNam" + juce::String (slot) + "_active"), nullptr);
     loadSlotNam (slot, file);
 }
@@ -591,7 +630,21 @@ void ViridianForgeProcessor::loadSlotNam (int slot, const juce::File& file)
    #endif
 }
 
-void ViridianForgeProcessor::loadNamModel (const juce::File& file, int amp)       { amps[juce::jlimit (0, 1, amp)]->loadNamModel (file, loader); }
+static void noteNamUsed (const juce::File& file)
+{
+   #if VF_WITH_NAM
+    auto& lib = ViridianForgeProcessor::namLibrary();
+    if (const auto* e = lib.findByPath (file.getFullPathName().toStdString()))
+    {
+        lib.markUsed (e->id);
+        lib.save();
+    }
+   #else
+    juce::ignoreUnused (file);
+   #endif
+}
+
+void ViridianForgeProcessor::loadNamModel (const juce::File& file, int amp)       { amps[juce::jlimit (0, 1, amp)]->loadNamModel (file, loader); noteNamUsed (file); }
 void ViridianForgeProcessor::unloadNamModel (int amp)                             { amps[juce::jlimit (0, 1, amp)]->unloadNamModel(); }
 FileSlotStatus ViridianForgeProcessor::getNamStatus (int amp) const               { return amps[juce::jlimit (0, 1, amp)]->getNamStatus(); }
 juce::String ViridianForgeProcessor::getNamProfilePath (int amp, int i) const      { return amps[juce::jlimit (0, 1, amp)]->namProfilePath (i); }
@@ -611,6 +664,50 @@ void ViridianForgeProcessor::housekeeping()
         if (auto* nl = dynamic_cast<NamLoaderFx*> (fx.get())) nl->collectGarbage();
    #endif
     for (auto& a : amps) a->housekeeping();
+}
+
+bool ViridianForgeProcessor::ampCaptureIncludesCab (int amp) const
+{
+   #if VF_WITH_NAM
+    const auto& a = *amps[juce::jlimit (0, 1, amp)];
+    if (! a.isRunningCapture()) return false;
+    switch (a.namCabMode())
+    {
+        case 1: return false;   // Amp Only
+        case 2: return true;    // Includes Cab
+        default: break;         // Auto: the library's override, else the file's own gear type
+    }
+    const auto info = a.namInfo();
+    if (const auto* e = namLibrary().findByPath (info.path)) return e->includesCab();
+    return info.includesCab();
+   #else
+    juce::ignoreUnused (amp);
+    return false;
+   #endif
+}
+
+bool ViridianForgeProcessor::blockHasCabCapture (int key) const
+{
+    if (key == vf::graph::kAmp1) return ampCaptureIncludesCab (0);
+    if (key == vf::graph::kAmp2) return ampCaptureIncludesCab (1);
+   #if VF_WITH_NAM
+    if (vf::graph::isFxKey (key))
+        if (auto* nl = dynamic_cast<NamLoaderFx*> (slotFx[static_cast<size_t> (key)].get()))
+        {
+            if (! nl->hasModel() || raw.fxOn[static_cast<size_t> (key)]->load() < 0.5f) return false;
+            const auto info = nl->info();
+            if (const auto* e = namLibrary().findByPath (info.path)) return e->includesCab();
+            return info.includesCab();
+        }
+   #endif
+    return false;
+}
+
+void ViridianForgeProcessor::updateCabGuards()
+{
+    const int keys[] = { vf::graph::kCab1, vf::graph::kCab2 };
+    for (int c = 0; c < 2; ++c)
+        cabs[c]->setBypassedByCapture (chain.everyPathHas (keys[c], [this] (int k) { return blockHasCabCapture (k); }));
 }
 
 //==============================================================================

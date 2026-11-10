@@ -422,6 +422,11 @@ void FileSlot::showMenu()
 {
     PopupMenu menu;
     Array<File> files;
+    if (onBrowse)
+    {
+        menu.addItem (5, "Browse library...");
+        menu.addSeparator();
+    }
     if (getLibraryFolder)
     {
         files = getLibraryFolder().findChildFiles (File::findFiles, false, wildcard);
@@ -440,6 +445,7 @@ void FileSlot::showMenu()
     {
         if (result >= 100 && result - 100 < files.size()) { if (onLoad) onLoad (files[result - 100]); return; }
         if (result == 4 && getLibraryFolder) { getLibraryFolder().revealToUser(); return; }
+        if (result == 5 && onBrowse) { onBrowse(); return; }
         if (result != 2 && result != 3) return;
         const bool import = result == 2;
         chooser = std::make_unique<FileChooser> (import ? "Import into the " + kind + " library" : "Load " + title,

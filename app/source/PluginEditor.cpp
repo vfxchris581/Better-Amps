@@ -35,6 +35,9 @@ ViridianForgeEditor::ViridianForgeEditor (ViridianForgeProcessor& p)
     showBlock (vf::graph::kAmp1);
     cabPanel1.setVisible (true);
     addChildComponent (about);
+   #if VF_WITH_NAM
+    addChildComponent (namBrowser);
+   #endif
 
     // Theme is stored in the session state so it survives reloads.
     themeValue.referTo (processor.getThemeValue());
@@ -168,6 +171,9 @@ void ViridianForgeEditor::resized()
     cabRoom2.setBounds (r);
 
     about.setBounds (getLocalBounds());
+   #if VF_WITH_NAM
+    namBrowser.setBounds (getLocalBounds());
+   #endif
     if (splash != nullptr)
         splash->setBounds (getLocalBounds());
 }
@@ -198,4 +204,13 @@ void ViridianForgeEditor::timerCallback()
 
     if (splash != nullptr && ! splash->isVisible())
         splash.reset();
+}
+
+void ViridianForgeEditor::showNamBrowser (const juce::String& targetName, const juce::File& currentFile, std::function<void (const juce::File&)> onPick)
+{
+   #if VF_WITH_NAM
+    namBrowser.open (targetName, currentFile, processor.getSampleRate() > 0 ? processor.getSampleRate() : 48000.0, std::move (onPick));
+   #else
+    juce::ignoreUnused (targetName, currentFile, onPick);
+   #endif
 }
