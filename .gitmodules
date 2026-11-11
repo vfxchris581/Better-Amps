@@ -1,0 +1,3 @@
+[submodule "nam-head/external/NeuralAmpModelerCore"]
+	path = nam-head/external/NeuralAmpModelerCore
+	url = https://github.com/sdatkinson/NeuralAmpModelerCore.git
