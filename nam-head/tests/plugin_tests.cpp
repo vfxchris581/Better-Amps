@@ -67,6 +67,8 @@ static double clickScore (const std::vector<float>& y, double fs, int skip, int*
 
 struct Out { std::vector<float> l, r; };
 
+static void waitForIrs (VFXAampsProcessor& p, std::initializer_list<int> which, double fs, int block);
+
 /** Runs the processor on a mono input (duplicated to both inputs); perBlock(blockIndex, samplePos) may change params. */
 template <typename Fn>
 static Out run (VFXAampsProcessor& p, const std::vector<float>& x, int block, Fn&& perBlock)
@@ -110,6 +112,22 @@ static int peakIndex (const std::vector<float>& y)
     int k = 0;
     for (int i = 0; i < static_cast<int> (y.size()); ++i) if (std::fabs (y[static_cast<size_t> (i)]) > std::fabs (y[static_cast<size_t> (k)])) k = i;
     return k;
+}
+
+/** Waits for the queued loads, then runs silence until JUCE's background thread has switched the IRs in. */
+static void waitForIrs (VFXAampsProcessor& p, std::initializer_list<int> which, double fs, int block)
+{
+    p.waitForLoads (10000);
+    const std::vector<float> silence (static_cast<size_t> (block), 0.0f);
+    for (int i = 0; i < 2000; ++i)
+    {
+        bool ready = true;
+        for (int w : which) ready &= p.isIrReady (w);
+        if (ready) break;
+        run (p, silence, block);
+        juce::Thread::sleep (2);
+    }
+    run (p, std::vector<float> (static_cast<size_t> (fs * 0.1), 0.0f), block); // let the 30 ms fade-ins finish
 }
 
 /** A neutral processor: no models (dry), no IR, limiter off, flat tone. */
@@ -205,7 +223,7 @@ static void testIr()
     {
         VFXAampsProcessor p; fresh (p);
         p.loadAsset (VFXAampsProcessor::irAsset (0), irDelta);
-        p.waitForLoads (5000);
+        waitForIrs (p, { 0 }, fs, 480);
         setParam (p, P::irBlend, 1.0f); // fully towards the empty B
         const auto x = sine (fs, 1.0, 440.0);
         const auto o = run (p, x, 480);
@@ -220,7 +238,7 @@ static void testIr()
     {
         VFXAampsProcessor p; fresh (p);
         p.loadAsset (VFXAampsProcessor::irAsset (0), irDelta);
-        p.waitForLoads (5000);
+        waitForIrs (p, { 0 }, fs, 480);
         setParam (p, P::ir (0, "pan"), -1.0f);
         const auto x = sine (fs, 0.6, 440.0);
         auto o = run (p, x, 480);
@@ -252,7 +270,7 @@ static void testIr()
         VFXAampsProcessor p; fresh (p);
         p.loadAsset (VFXAampsProcessor::irAsset (0), irDark);
         p.loadAsset (VFXAampsProcessor::irAsset (1), irLate);
-        p.waitForLoads (5000);
+        waitForIrs (p, { 0, 1 }, fs, 480);
         const auto x = sine (fs, 6.0, 220.0);
         int phase = -1;
         const auto o = run (p, x, 480, [&] (int, int pos)

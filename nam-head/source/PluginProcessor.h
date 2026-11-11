@@ -89,6 +89,8 @@ public:
     int getRunningModels() const noexcept { return engine.runningModels(); }
     float getSlotLevel (int slot) const noexcept { return engine.slotLevel (slot); }
     float getOutputPeak() const noexcept { return outPeak.load (std::memory_order_relaxed); }
+    /** True once IR `which` is loaded and active in the convolution (tests / offline use). */
+    bool isIrReady (int which) const noexcept { return irs.isReady (which); }
     float getInputPeak() const noexcept { return inPeak.load (std::memory_order_relaxed); }
 
     juce::AudioProcessorValueTreeState apvts;

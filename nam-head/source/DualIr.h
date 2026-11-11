@@ -33,6 +33,8 @@ public:
     void load (juce::AudioBuffer<float>&& ir, double irSampleRate, const juce::String& path);
     void clear();
     bool isLoaded() const noexcept { return loaded.load(); }
+    /** Audio thread: loaded and the convolution has actually switched to an IR (JUCE prepares IRs in the background). */
+    bool isReady() const noexcept { return loaded.load (std::memory_order_relaxed) && conv.getCurrentIRSize() > 0; }
     juce::String getPath() const;
 
     /** Audio thread. weight = blend weight for this IR (0..1, smoothed by the caller per block). */
@@ -71,6 +73,8 @@ public:
     IrChannel& channel (int which) noexcept { return which == 0 ? a : b; }
 
     /** Audio thread: mono in -> stereo out. */
+    bool isReady (int which) const noexcept { return which == 0 ? a.isReady() : b.isReady(); }
+
     void process (const float* in, float* outL, float* outR, int n,
                   bool globalOn, float blend, const IrParams& pa, const IrParams& pb) noexcept;
 
