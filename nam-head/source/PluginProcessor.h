@@ -59,6 +59,7 @@ public:
         juce::String path;      // file in use or wanted (also kept when missing, for relinking)
         juce::String name;      // display name
         juce::String error;     // last load error
+        juce::String detail;    // e.g. "WaveNet  48 kHz  Marshall JCM800"
         bool loading = false, missing = false, loaded = false;
     };
     void loadAsset (int asset, const juce::File& file);

@@ -1,5 +1,8 @@
 <p align="center"><img src="resources/branding/icon_256.png" width="128" alt="VFXAamps icon"></p>
 
+> **VFXAamps NAM head** — a separate app in [`nam-head/`](nam-head/README.md): a NAM amp head with a 10-slot morphing gain knob and a dual IR loader, with its own build and installers.
+
+
 # VFXAamps
 
 **Guitar amp and effects modeling — standalone app and VST3/AU plugin for Windows, macOS and Linux.**

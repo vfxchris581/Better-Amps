@@ -409,8 +409,13 @@ void VFXAampsProcessor::loadAsset (int asset, const juce::File& file)
                 return;
             }
             const auto name = juce::String (load.info.name);
+            juce::StringArray detail;
+            detail.add (load.info.architecture == "SlimmableContainer" ? juce::String ("A2") : juce::String (load.info.architecture));
+            if (load.info.sampleRate > 0) detail.add (juce::String (load.info.sampleRate / 1000.0, load.info.sampleRate == 44100.0 ? 1 : 0) + " kHz");
+            if (load.info.gearName().size() > 0) detail.add (juce::String (load.info.gearName()));
+            const auto detailText = detail.joinIntoString ("  ");
             engine.setSlot (asset, std::move (load));
-            setStatus (asset, [&] (AssetStatus& s) { s.loading = false; s.loaded = true; s.name = name; s.path = file.getFullPathName(); });
+            setStatus (asset, [&] (AssetStatus& s) { s.loading = false; s.loaded = true; s.name = name; s.detail = detailText; s.path = file.getFullPathName(); });
         }
         else
         {
@@ -423,8 +428,10 @@ void VFXAampsProcessor::loadAsset (int asset, const juce::File& file)
                 setStatus (asset, [&] (AssetStatus& s) { s.loading = false; s.error = err; if (! s.loaded) s.path = {}; });
                 return;
             }
+            const auto detailText = juce::String (ir.getNumChannels() > 1 ? "stereo  " : "mono  ") + juce::String (rate / 1000.0, 1) + " kHz  "
+                                  + juce::String (1000.0 * ir.getNumSamples() / rate, 0) + " ms";
             irs.channel (asset - vfxa::kNumSlots).load (std::move (ir), rate, file.getFullPathName());
-            setStatus (asset, [&] (AssetStatus& s) { s.loading = false; s.loaded = true; s.name = file.getFileNameWithoutExtension(); s.path = file.getFullPathName(); });
+            setStatus (asset, [&] (AssetStatus& s) { s.loading = false; s.loaded = true; s.name = file.getFileNameWithoutExtension(); s.detail = detailText; s.path = file.getFullPathName(); });
         }
     });
 }

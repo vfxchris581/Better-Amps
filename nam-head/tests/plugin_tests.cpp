@@ -394,10 +394,11 @@ static void testEditorSnapshot (const File& outDir)
     run (p, sine (48000, 0.3, 110.0), 256); // so the slot glow / meters have values
 
     std::unique_ptr<juce::AudioProcessorEditor> ed (p.createEditor());
+    ed->setSize (1240, 760);
     for (auto [w, name] : { std::pair<int, const char*> { ed->getWidth(), "vfxaamps-ui.png" }, { 1600, "vfxaamps-ui-large.png" } })
     {
         ed->setSize (w, juce::roundToInt (w * static_cast<double> (ed->getHeight()) / ed->getWidth()));
-        if (auto* t = dynamic_cast<juce::Timer*> (ed.get())) t->timerCallback();
+        if (auto* e = dynamic_cast<VFXAampsEditor*> (ed.get())) e->timerCallback();
         const auto img = ed->createComponentSnapshot (ed->getLocalBounds(), true, 1.0f);
         juce::PNGImageFormat png;
         outDir.createDirectory();
