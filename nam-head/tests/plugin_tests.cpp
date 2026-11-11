@@ -232,6 +232,18 @@ static void testIr()
         double err = 0;
         for (size_t i = 24000; i < 48000; ++i) err = std::max (err, (double) std::fabs (o.l[i] - x[i]));
         CHECK (err < 1e-3, "delta IR is transparent and zero-latency (max err %.5f)", err);
+        if (err >= 1e-3 || std::fabs (ratio - 1.0) >= 0.02)
+        {
+            std::vector<float> imp (4800, 0.0f); imp[1000] = 1.0f;
+            const auto ri = run (p, imp, 480);
+            std::printf ("  debug: ready A %d B %d, impulse response L around 1000:", p.isIrReady (0), p.isIrReady (1));
+            for (int i = 996; i < 1012; ++i) std::printf (" %.4f", ri.l[static_cast<size_t> (i)]);
+            double e = 0; for (float v : ri.l) e += v * v;
+            std::printf ("  energy %.4f peak@%d\n", e, peakIndex (ri.l));
+            std::printf ("  debug: sine out/in at i=24000..24005:");
+            for (size_t i = 24000; i < 24006; ++i) std::printf (" %.4f/%.4f", o.l[i], x[i]);
+            std::printf ("\n");
+        }
     }
 
     // pan, phase, delay, cuts
